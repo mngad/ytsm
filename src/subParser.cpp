@@ -8,6 +8,7 @@
 #include "Video.h"
 #include <boost/filesystem.hpp>
 #include <stdlib.h>
+#include "subParser.h"
 
 
 
@@ -15,30 +16,28 @@
 using namespace rapidxml;
 using namespace std;
 
-Channel openChannel(string xml);
-vector<Channel> getChannelVector(string xmlFile);
-void createCache();
 
-void clearCache(){
+
+void subParser::clearCache(){
 	boost::filesystem::remove_all("cache");
 }
 
-void createCache(){
+void subParser::createCache(){
 	
 	boost::filesystem::create_directory("cache");
 	
 
 }
 
-void dlChannelXMLs(){
+void subParser::dlChannelXMLs(){
 	system("./getID.sh");
-	createCache();
+	subParser::createCache();
 	system("./downloadXMLs.sh");
 
 }
 
 
-Channel openChannel(string xml){
+Channel subParser::openChannel(string xml){
 	
 	Channel currChannel;
 	xml_document<> doc;
@@ -70,9 +69,7 @@ Channel openChannel(string xml){
 
 }
 
-
-int main(void)
-{	
+vector<Channel> subParser::getChannelVector(){
 	clearCache();
 	boost::filesystem::path cachePath("cache");
 	dlChannelXMLs();
@@ -81,16 +78,23 @@ int main(void)
 
 		chanVect.push_back(openChannel(entry.path().string()));
 	}
-    
+    return chanVect;
+
+
+}
+
+// int main(void)
+// {	
+// 	vector<Channel> chanVect = getChannelVector();
 
   	
-  	for (auto & element : chanVect) {
-		cout<<element.getChannelName()<<endl;
-	  	vector<Video> vvec = element.getVideoVector();
-	  	for(auto & video : vvec) {
-			cout<<video.getVideoTitle()<<endl;
-		  	cout<<video.getVideoUrl()<<"\n"<<endl;
-	  }
-}
+//   	for (auto & element : chanVect) {
+// 		cout<<element.getChannelName()<<endl;
+// 	  	vector<Video> vvec = element.getVideoVector();
+// 	  	for(auto & video : vvec) {
+// 			cout<<video.getVideoTitle()<<endl;
+// 		  	cout<<video.getVideoUrl()<<"\n"<<endl;
+// 	  }
+// }
 
-}
+// }

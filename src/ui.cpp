@@ -1,76 +1,208 @@
-#include <stdio.h>
+#include <iostream>
+#include <signal.h>
 #include <ncurses.h>
-#include <signal.h>
-#include <algorithm>
+#include <menu.h>
 #include <string>
-#include <signal.h>
-#include <algorithm>
-#include <boost/algorithm/string/replace.hpp>
+#include <unistd.h>
 
+#include "subParser.h"
+#include "Video.h"
+#include "Channel.h"
 
-WINDOW *create_newwin(int height, int width, int starty, int startx);
-void destroy_win(WINDOW *local_win);
+using namespace std;
 
-void updateFD(WINDOW *mainwin, WINDOW *childwin, int feednum, int scrNum){
+#define SCREEN_MAIN 0
 
-	wclear(mainwin);
-	refresh();
+#define KKEY_DOWN 258
+#define KKEY_UP 259
+#define KEY_q 113
+#define KEY_ENTER 13
+#define NEXT 93
+#define PREV 91
+
+char *MenuItems[1024];
+int SelItem = 0;
+int LastItem = 0;
+char *HeaderText;
+
+WINDOW *win;
+bool Terminated;
+int Screen = 0;
+int LastKey;
+int MaxX = 0;
+int MaxY = 0;
+int CurrentItem =0;
+std::string currentAction;
+int currChan = 0;
+
+void openVideo(std::string url);
+int ProcessScreenMain(std::string ch, vector<Channel> chvec);
+void ClearLine(int y, int l);
+vector<Video> getVVec(vector<Channel> chanVec, int currID);
+
+int Process(std::string ch,vector<Channel> chvec) {
+  getmaxyx(win, MaxY, MaxX);
+  
+  switch (Screen) {
+    default: ProcessScreenMain(ch, chvec);
+  }
+
+  if (LastKey == KEY_q) {
+    Terminated = true;
+  }
+  return 0;
 }
-void resizeHandler(WINDOW *mainwin, WINDOW *childwin, int feednum) {
-    
-	updateFD(mainwin,childwin,feednum,0);
-}
 
-int main()
-{
+int ProcessScreenMain(std::string ch,  vector<Channel> chvec) {
+    vector<Video> v = getVVec(chvec,currChan);
+  LastItem = v.size();
+  
+  attrset(COLOR_PAIR(1));
+  for (int i = 0; i <= MaxY; i++) ClearLine(i, MaxX);
 
-	
-    WINDOW * mainwin, * childwin;
-    std::string      ch;
+  // draw header
+  attrset(A_BOLD|COLOR_PAIR(2));
+  ClearLine(0, MaxX);
+  mvaddstr(0, 0, HeaderText);
+  mvaddstr(0, 1, ch.c_str());
+  
+  // draw body
+  attrset(COLOR_PAIR(1));
 
-    if ( (mainwin = initscr()) == NULL ) {
-	fprintf(stderr, "Error initialising ncurses.\n");
-	exit(EXIT_FAILURE);
+  for (int i = 0; i < LastItem; i++) {
+    if (SelItem == i) {
+      attrset(COLOR_PAIR(3));
+    } else {
+      attrset(COLOR_PAIR(1));
     }
-    
+    //cout<<vvec[i].getVideoTitle()<<endl;
+    mvaddstr(i +1, 0, v[i].getVideoTitle().c_str());
+    //mvaddstr((2*i)+2, 0, vvec[i].getVideoUrl().c_str());
+    //cout<<vvec.size()<<endl;
+    //cout<<i<<endl;
+  }
+    //cout<<"here"<<endl;
+  // draw status line
+  attrset(A_BOLD|COLOR_PAIR(2));
+  ClearLine(MaxY - 2, MaxX);
+  mvaddstr(MaxY - 2, 0, currentAction.c_str());
+  //mvaddstr(MaxY -4,0,std::to_string(getch()).c_str());
 
+  curs_set(0);
+  refresh();
+  
+  LastKey = getch();
+  
+  if (LastKey == KEY_UP) {
+      SelItem=SelItem-1;
+      //cout<<CurrentItem<<endl;
+    
+        if(CurrentItem>0)CurrentItem--;
+
+  }
+  if (LastKey == KEY_DOWN) {
+      SelItem= SelItem+1;
+
+      if (CurrentItem<LastItem)CurrentItem++;
+  }
+  if (LastKey == KEY_ENTER){
+     
+        std::string url = v[CurrentItem].getVideoUrl();
+    currentAction = "opening " + url;
+    openVideo(url);
+  }
+  if(LastKey == NEXT){
+      if(currChan +1 <chvec.size())currChan++;
+      ClearLine(2,MaxY);
+  }
+  if(LastKey == PREV){
+      if(currChan -1 >=0)currChan--;
+            ClearLine(2,MaxY);
+  }
+
+
+  if (SelItem >= LastItem) SelItem = LastItem;
+  if (SelItem < 0) SelItem = 0;
+  return 0;
+}
+
+void openVideo(std::string url){
+    std::string callFunc = "/usr/bin/mpv --no-terminal " + url + " &";
+    system(callFunc.c_str());
+    ClearLine(0,MaxY);
+    refresh();
+
+}
+
+void ClearLine(int y, int l) {
+  move(y, 1);
+  l++;
+  char Str[l];
+  for (int i = 0; i < l; i++) Str[i] = ' ';
+  Str[l - 1] = '\0';
+  mvaddstr(y, 0, Str);
+}
+
+void CatchSIG(int sig) {
+  Terminated = true;
+}
+
+vector<Video> getVVec(vector<Channel> chanVec, int currID){
+    
+   vector<Video> vvec;
+    vvec = chanVec[currChan].getVideoVector();
+    return vvec;
+    
+}
+int main(int argc, char *argv[]) {
+
+	  	
+      
+  int c = 0;
+  subParser parser;
+  
+  vector<Channel> channelVector;
+  channelVector = parser.getChannelVector();
+vector<std::string> nameVector;
+vector<Video> vvec;
+  signal(SIGINT, CatchSIG);
+  
+  initscr();
+  keypad(stdscr, true);
+  nonl(); 
+  cbreak();
+  noecho();   
+  win = newwin(0, 0, 0, 0);
+  
+  if (has_colors()) {
+    start_color();
+    init_pair(1, COLOR_WHITE,   COLOR_BLACK);
+    init_pair(2, COLOR_GREEN,   COLOR_BLUE);
+    init_pair(3, COLOR_BLACK,   COLOR_CYAN);
+  }
+  
+  SelItem = 0;
+  LastItem = 0;
+  HeaderText = "  q:Quit  ";
+  
   
 
-    /*  Switch of echoing and enable keypad (for arrow keys)  */
+        
 
-    noecho();
-    keypad(mainwin, TRUE);
-
-
-    /*  Make our child window, and add
-	a border and some text to it.   */
-
-    int      width = COLS -2, height = LINES -2;
-    int      rows  = LINES, cols   = COLS;
-    int      x = (cols - width)  / 2;
-    int      y = (rows - height) / 2;
-
-    childwin = subwin(mainwin, height, width, y, x);
-    int feednum = 0;
-    
-    refresh();
-
-	//vwaddstr(my_win,startx, starty, "feedVector[0].GetName().c_str()");
-	//addstr(feedVector[0].GetName().c_str());
-
-	//signal(SIGWINCH, resizeHandler(mainwin, childwin, feednum));
-    ch = " ";
-    int scrnum = 0;
-    while(ch != "q"){
-    	ch = getch();
+for (auto & element : channelVector) {
+nameVector.push_back(element.getChannelName());
+}
 
 
-    }
 
-    delwin(childwin);
-    delwin(mainwin);
-    endwin();
-    refresh();
+  
+  currentAction = "chvex.size" + std::to_string(channelVector.size());
+  while (!Terminated) {
+    Process(nameVector[currChan], channelVector);
+    usleep(1000);
+  }
 
-    return EXIT_SUCCESS;
-	}
+  cout << "Terminated" << endl;
+
+  endwin();
+}
