@@ -6,21 +6,37 @@
 #include "rapidxml-1.13/rapidxml.hpp"
 #include "Channel.h"
 #include "Video.h"
+#include <boost/filesystem.hpp>
+#include <stdlib.h>
+
+
 
 
 using namespace rapidxml;
 using namespace std;
-Channel openChannel(string xml);
-vector<Channel> getChannelVector();
 
-vector<Channel> getChannelVector(){
-	string xml = "LinusTechTips.xml";
-	Channel currChannel = openChannel(xml);
-	vector<Channel> channelVector;
-	channelVector.push_back(currChannel);
-	return channelVector;
+Channel openChannel(string xml);
+vector<Channel> getChannelVector(string xmlFile);
+void createCache();
+
+void clearCache(){
+	boost::filesystem::remove_all("cache");
+}
+
+void createCache(){
+	
+	boost::filesystem::create_directory("cache");
+	
 
 }
+
+void dlChannelXMLs(){
+	system("./getID.sh");
+	createCache();
+	system("./downloadXMLs.sh");
+
+}
+
 
 Channel openChannel(string xml){
 	
@@ -56,14 +72,24 @@ Channel openChannel(string xml){
 
 
 int main(void)
-{
-  vector<Channel> chanVect = getChannelVector();
-  for (auto & element : chanVect) {
-	  cout<<element.getChannelName()<<endl;
-	  vector<Video> vvec = element.getVideoVector();
-	  for(auto & video : vvec) {
-		  cout<<video.getVideoTitle()<<endl;
-		  cout<<video.getVideoUrl()<<"\n"<<endl;
+{	
+	clearCache();
+	boost::filesystem::path cachePath("cache");
+	dlChannelXMLs();
+	vector<Channel> chanVect;
+	for (boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator(cachePath)){
+
+		chanVect.push_back(openChannel(entry.path().string()));
+	}
+    
+
+  	
+  	for (auto & element : chanVect) {
+		cout<<element.getChannelName()<<endl;
+	  	vector<Video> vvec = element.getVideoVector();
+	  	for(auto & video : vvec) {
+			cout<<video.getVideoTitle()<<endl;
+		  	cout<<video.getVideoUrl()<<"\n"<<endl;
 	  }
 }
 
