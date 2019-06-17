@@ -1,4 +1,5 @@
-input="channelXMLList.conf"
+pwd
+input="temp/channelXMLList.conf"
 while IFS= read -r line
 do
     cd cache

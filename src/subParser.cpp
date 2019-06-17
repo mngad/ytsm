@@ -20,19 +20,22 @@ using namespace std;
 
 void subParser::clearCache(){
 	boost::filesystem::remove_all("cache");
+	boost::filesystem::remove_all("temp");
 }
 
 void subParser::createCache(){
 	
 	boost::filesystem::create_directory("cache");
+	boost::filesystem::create_directory("temp");
 	
 
 }
 
 void subParser::dlChannelXMLs(){
-	system("./getID.sh");
 	subParser::createCache();
-	system("./downloadXMLs.sh");
+	system("./src/getID.sh");
+	
+	system("./src/downloadXMLs.sh");
 
 }
 
@@ -75,8 +78,9 @@ vector<Channel> subParser::getChannelVector(){
 	dlChannelXMLs();
 	vector<Channel> chanVect;
 	for (boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator(cachePath)){
-
+		
 		chanVect.push_back(openChannel(entry.path().string()));
+		
 	}
     return chanVect;
 
