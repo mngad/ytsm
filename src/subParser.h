@@ -19,6 +19,7 @@ class subParser{
         void createCache();
         void clearCache();
         void dlChannelXMLs();
+        std::vector<Channel> updateGetChannelVector();
         
 
 };

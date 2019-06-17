@@ -47,7 +47,7 @@ Channel subParser::openChannel(string xml){
 	xml_node<> * root_node;
 	// Read the xml file into a vector
 	ifstream theFile (xml);
-	cout << "Parsing " << xml << endl;
+	//cout << "Parsing " << xml << endl;
 	vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
 	buffer.push_back('\0');
 	// Parse the buffer using the xml file parsing library into doc 
@@ -73,9 +73,9 @@ Channel subParser::openChannel(string xml){
 }
 
 vector<Channel> subParser::getChannelVector(){
-	clearCache();
+	
 	boost::filesystem::path cachePath("cache");
-	dlChannelXMLs();
+	
 	vector<Channel> chanVect;
 	for (boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator(cachePath)){
 		
@@ -87,6 +87,20 @@ vector<Channel> subParser::getChannelVector(){
 
 }
 
+vector<Channel> subParser::updateGetChannelVector(){
+	clearCache();
+	dlChannelXMLs();
+boost::filesystem::path cachePath("cache");
+	
+	vector<Channel> chanVect;
+	for (boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator(cachePath)){
+		
+		chanVect.push_back(openChannel(entry.path().string()));
+		
+	}
+    return chanVect;
+	
+}
 // int main(void)
 // {	
 // 	vector<Channel> chanVect = getChannelVector();

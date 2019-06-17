@@ -1,4 +1,4 @@
-pwd
+#pwd
 input="temp/channelXMLList.conf"
 while IFS= read -r line
 do
