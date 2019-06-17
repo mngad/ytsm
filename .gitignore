@@ -1,3 +1,5 @@
 cache
 *.conf
 *.o
+*.json
+*.vscode
