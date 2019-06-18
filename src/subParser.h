@@ -20,6 +20,8 @@ class subParser{
         void clearCache();
         void dlChannelXMLs();
         std::vector<Channel> updateGetChannelVector();
+        void updateChanXML();
+        bool hasEnding (std::string const &fullString, std::string const &ending);
         
 
 };

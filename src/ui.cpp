@@ -63,10 +63,16 @@ int Process(std::string ch,vector<Channel> chvec) {
     changeScreen();
   }
   if (LastKey == UKEY){
+    
+    currentAction ="Updating...";
+    processPageView(ch, channelVector);
     subParser p;
     channelVector.clear();
     channelVector = p.updateGetChannelVector();
-
+    currentAction ="Updated";
+    ClearLine(2,MaxY);
+    processPageView(ch, channelVector);
+    
   }
   switch (Screen) {
     default: 
@@ -256,8 +262,10 @@ int main(int argc, char *argv[]) {
   int c = 0;
   subParser parser;
   
-  
+  cout<<"hey"<<endl;
   channelVector = parser.getChannelVector();
+    cout<<"hey2"<<endl;
+
 vector<std::string> nameVector;
 vector<Video> vvec;
   signal(SIGINT, CatchSIG);
@@ -284,9 +292,9 @@ vector<Video> vvec;
 
         
 
-for (auto & element : channelVector) {
-nameVector.push_back(element.getChannelName());
-}
+  for (auto & element : channelVector) {
+  nameVector.push_back(element.getChannelName());
+  }
 
 
 
