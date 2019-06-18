@@ -39,7 +39,7 @@ std::string currentAction;
 int currChan = 0;
 int windowtype =0;
 int maxWinType =1;
-vector<Channel> channelVector;
+std::vector<Channel> channelVector;
 
 void openVideo(std::string url);
 int processPageView(std::string ch, vector<Channel> chvec);
@@ -64,6 +64,7 @@ int Process(std::string ch,vector<Channel> chvec) {
   }
   if (LastKey == UKEY){
     subParser p;
+    channelVector.clear();
     channelVector = p.updateGetChannelVector();
 
   }
