@@ -1,1 +1,0 @@
-g++ -o ui src/ui.cpp src/subParser.cpp src/Channel.cpp src/Video.cpp -L/usr/local/lib/ -lboost_filesystem -lncurses
