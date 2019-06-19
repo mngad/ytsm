@@ -71,6 +71,7 @@ int Process(std::string ch,vector<Channel> chvec) {
     channelVector = p.updateGetChannelVector();
     currentAction ="Updated";
     ClearLine(2,MaxY);
+    SelItem=0;
     processPageView(ch, channelVector);
     
   }

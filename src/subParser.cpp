@@ -118,7 +118,7 @@ void subParser::updateChanXML(){
 	//cout<<"hey1"<<endl;
 	for (boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator(cachePath)){
 
-		if(!hasEnding(entry.path().string(),".1")){
+		if(!hasEnding(entry.path().string(),".1") && boost::filesystem::exists(entry.path().string()+".1")){
 			//cout<<"hey2"<<endl;
 			xml_document<> olddoc;
 			xml_node<> * oldroot_node;
