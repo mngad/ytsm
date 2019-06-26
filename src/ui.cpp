@@ -5,7 +5,7 @@
 #include <string>
 #include <unistd.h>
 #include <boost/thread.hpp>
-
+#include <cmath>
 #include "subParser.h"
 #include "Video.h"
 #include "Channel.h"
@@ -42,6 +42,7 @@ int currChan = 0;
 int windowtype =0;
 int maxWinType =2;
 bool updating = false;
+int shift = 0;
 subParser p;
 std::vector<Channel> channelVector;
 
@@ -53,6 +54,19 @@ vector<Video> getVVec(vector<Channel> chanVec, int currID);
 int processIndividualMode(vector<Channel> chvec);
 int processAllMode(vector<Channel> chvec);
 
+void shiftFactor(int dir){
+  if(shift >= 0){
+    if((SelItem > MaxY-4)&&(dir<0))shift++;
+    if((SelItem < shift)&&(dir>0))shift--;
+  }
+}
+
+std::string fillIn(int textSize, int endpoint){
+  int spaceSize = std::abs(endpoint - textSize);
+  char Str[spaceSize];
+  for (int i = 0; i < spaceSize; i++) Str[i] = ' ';
+  return Str;
+}
 
 void upchVecThread(){
 
@@ -154,11 +168,17 @@ int processGenericPost(){
   LastKey = getch();
   
   if (LastKey == KEY_UP) {
-    SelItem=SelItem-1;
+    if(SelItem -1 >= 0){
+      SelItem--;
+      shiftFactor(1);
+    }
     //cout<<CurrentItem<<endl;
   }
   if (LastKey == KEY_DOWN) {
-    SelItem= SelItem+1;
+    if(SelItem +1 <LastItem) {
+      SelItem= SelItem+1;
+     shiftFactor(-1);
+    }
   }
 
 }
@@ -167,24 +187,32 @@ int processAllMode(vector<Channel> chvec) {
   vector<Video> v = p.getAllVector(chvec);
  
   processGenericPre(v, "All Videos");
-
-  for (int i = 0; i < LastItem; i++) {
-    if (SelItem == i) {
+  int size;
+  if(v.size()>MaxY)size = MaxY-3;
+  else size = LastItem;
+  for (int i = 0; i < size; i++) {
+    if (SelItem == i+shift) {
       attrset(COLOR_PAIR(3));
     } else {
       attrset(COLOR_PAIR(1));
     }
+    if((i+shift)<=v.size()){
 
-    mvaddstr(i +1, 0, v[i].getVideoChannel().c_str());
-  
-    mvaddstr(i+1, 23, " |");
-    mvaddstr(i +1, 25, v[i].getVideoTitle().c_str());
-    mvaddstr(i+1, 94, " |");
-   
-    mvaddstr(i +1, 96, (p.normaliseDate(v[i].getVideoDate())+"                   ").c_str());
+      mvaddstr(i +1, 0, (v[i+shift].getVideoChannel()+ 
+        fillIn(v[i+shift].getVideoChannel().length(),23)).c_str());
     
+      mvaddstr(i+1, 23, " |");
+      mvaddstr(i +1, 25, (v[i+shift].getVideoTitle()+
+        fillIn(v[i+shift].getVideoTitle().length()+25,94)).c_str());
+      mvaddstr(i+1, 94, " |");
+    
+      mvaddstr(i +1, 96, (p.normaliseDate(v[i+shift].getVideoDate())+
+        fillIn(p.normaliseDate(v[i+shift].getVideoDate()).length()+96,MaxX-1)).c_str());
+    }
   }
-  
+  mvaddstr(0,120,("SelItem = " + std::to_string(SelItem) + "shift = "+std::to_string(shift)).c_str());
+    if (SelItem >= LastItem) SelItem = LastItem;
+  if (SelItem < 0) SelItem = 0;
   processGenericPost();
   currentAction = v[SelItem].getVideoUrl();
   if (LastKey == KEY_ENTER){
@@ -203,17 +231,19 @@ int processPageView(vector<Channel> chvec) {
   std::string title = chvec[currChan].getChannelName();
   
  processGenericPre(v, title);
-
-  for (int i = 0; i < LastItem; i++) {
-    if (SelItem == i) {
+int size;
+  if(v.size()>MaxY)size = MaxY-3;
+  else size = LastItem;
+  for (int i = 0; i < size; i++) {
+    if (SelItem == i+shift) {
       attrset(COLOR_PAIR(3));
     } else {
       attrset(COLOR_PAIR(1));
     }
-    mvaddstr(i +1, 0, v[i].getVideoTitle().c_str());
+    mvaddstr(i +1, 0, v[i+shift].getVideoTitle().c_str());
     mvaddstr(i+1, 69, "|");
    
-    mvaddstr(i +1, 70, p.normaliseDate(v[i].getVideoDate()).c_str());
+    mvaddstr(i +1, 70, p.normaliseDate(v[i+shift].getVideoDate()).c_str());
   }
   
   processGenericPost();
@@ -242,16 +272,19 @@ int processPageView(vector<Channel> chvec) {
 int processIndividualMode(vector<Channel> chvec) {
   vector<Video> v = getVVec(chvec,currChan);
  processGenericPre(v, "All Channels");
-
-  for (int i = 0; i < chvec.size(); i++) {
-    if (SelItem == i) {
+int size;
+  if(chvec.size()>MaxY)size = MaxY-3;
+  else size = LastItem;
+  for (int i = 0; i < size; i++) {
+    if (SelItem == i+shift) {
       attrset(COLOR_PAIR(3));
     } else {
       attrset(COLOR_PAIR(1));
     }
     
-    mvaddstr(i +1, 0, chvec[i].getChannelName().c_str());
+    mvaddstr(i +1, 0, chvec[i+shift].getChannelName().c_str());
     //mvaddstr(1, 0, std::to_string(LastKey).c_str());
+    //mvaddstr(1, 1, std::to_string(MaxY).c_str());
 
   }
 
@@ -261,7 +294,6 @@ int processIndividualMode(vector<Channel> chvec) {
     currChan = SelItem;
     windowtype = 0;
     SelItem = 0;
-  
   
   }
   if (SelItem >= LastItem) SelItem = LastItem;
