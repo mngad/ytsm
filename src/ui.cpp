@@ -4,6 +4,7 @@
 #include <menu.h>
 #include <string>
 #include <unistd.h>
+#include <boost/thread.hpp>
 
 #include "subParser.h"
 #include "Video.h"
@@ -21,6 +22,7 @@ using namespace std;
 #define PREV 91
 #define MKEY 109
 #define UKEY 117
+#define AKEY 97
 
 
 char *MenuItems[1024];
@@ -38,50 +40,84 @@ int CurrentItem =0;
 std::string currentAction;
 int currChan = 0;
 int windowtype =0;
-int maxWinType =1;
+int maxWinType =2;
+bool updating = false;
+subParser p;
 std::vector<Channel> channelVector;
 
 void openVideo(std::string url);
-int processPageView(std::string ch, vector<Channel> chvec);
+int processPageView(vector<Channel> chvec);
 void ClearLine(int y, int l);
+void ClearLinePart(int y, int x, int l);
 vector<Video> getVVec(vector<Channel> chanVec, int currID);
 int processIndividualMode(vector<Channel> chvec);
+int processAllMode(vector<Channel> chvec);
+
+
+void upchVecThread(){
+
+
+
+  std::vector<Channel> channelVectorTemp;
+  updating = true;
+  channelVectorTemp = p.updateGetChannelVector();
+  channelVector.clear();
+  channelVector = channelVectorTemp;
+  updating = false;
+  ClearLine(2,MaxY);
+  SelItem=0;
+  currentAction = "Updated";
+    
+}
+
+void update(std::string ch){
+    
+  subParser p;
+  boost::thread thread = boost::thread(upchVecThread);
+  thread.detach();
+  //channelVector = p.updateGetChannelVector();
+    
+  ClearLine(2,MaxY);
+  SelItem=0;
+  windowtype=1;
+  
+
+}
+
 void changeScreen(){
   
-    if(windowtype+1<=maxWinType)windowtype++;
-    else {
-      windowtype =0;
+  if(windowtype+1<=maxWinType)windowtype++;
+  else {
+    windowtype =0;
     currChan = SelItem;
-    }
-    SelItem =0;
+  }
+  SelItem =0;
 }
 
 int Process(std::string ch,vector<Channel> chvec) {
   getmaxyx(win, MaxY, MaxX);
-  
+
   if (LastKey == MKEY){
-    changeScreen();
+    windowtype = 1;
+  }
+  if (LastKey == AKEY){
+    windowtype =2;
   }
   if (LastKey == UKEY){
-    
     currentAction ="Updating...";
-    processPageView(ch, channelVector);
-    subParser p;
-    channelVector.clear();
-    channelVector = p.updateGetChannelVector();
-    currentAction ="Updated";
-    ClearLine(2,MaxY);
-    SelItem=0;
-    processPageView(ch, channelVector);
+    update(ch);
     
   }
   switch (Screen) {
-    default: 
+  default: 
     if (windowtype==0){
-      processPageView(ch, chvec);
+      processPageView(chvec);
     }
     if(windowtype==1){
       processIndividualMode(chvec);
+    }
+    if(windowtype==2){
+      processAllMode(chvec);
     }
   }
 
@@ -91,9 +127,8 @@ int Process(std::string ch,vector<Channel> chvec) {
   return 0;
 }
 
-int processPageView(std::string ch,  vector<Channel> chvec) {
-    vector<Video> v = getVVec(chvec,currChan);
-  LastItem = v.size();
+int processGenericPre(vector<Video> v , std::string title){
+ LastItem = v.size();
   
   attrset(COLOR_PAIR(1));
   for (int i = 0; i <= MaxY; i++) ClearLine(i, MaxX);
@@ -102,10 +137,36 @@ int processPageView(std::string ch,  vector<Channel> chvec) {
   attrset(A_BOLD|COLOR_PAIR(2));
   ClearLine(0, MaxX);
   mvaddstr(0, 0, HeaderText);
-  mvaddstr(0, 1, ch.c_str());
-  
+  mvaddstr(0, 1, title.c_str());
+
   // draw body
   attrset(COLOR_PAIR(1));
+
+}
+int processGenericPost(){
+  attrset(A_BOLD|COLOR_PAIR(2));
+  ClearLine(MaxY - 2, MaxX);
+  mvaddstr(MaxY - 2, 0, currentAction.c_str());
+  
+  curs_set(0);
+  refresh();
+  
+  LastKey = getch();
+  
+  if (LastKey == KEY_UP) {
+    SelItem=SelItem-1;
+    //cout<<CurrentItem<<endl;
+  }
+  if (LastKey == KEY_DOWN) {
+    SelItem= SelItem+1;
+  }
+
+}
+
+int processAllMode(vector<Channel> chvec) {
+  vector<Video> v = p.getAllVector(chvec);
+ 
+  processGenericPre(v, "All Videos");
 
   for (int i = 0; i < LastItem; i++) {
     if (SelItem == i) {
@@ -113,49 +174,63 @@ int processPageView(std::string ch,  vector<Channel> chvec) {
     } else {
       attrset(COLOR_PAIR(1));
     }
-    //cout<<vvec[i].getVideoTitle()<<endl;
-    mvaddstr(i +1, 0, v[i].getVideoTitle().c_str());
-    //mvaddstr((2*i)+2, 0, vvec[i].getVideoUrl().c_str());
-    //cout<<vvec.size()<<endl;
-    //cout<<i<<endl;
-  }
-    //cout<<"here"<<endl;
-  // draw status line
-  attrset(A_BOLD|COLOR_PAIR(2));
-  ClearLine(MaxY - 2, MaxX);
-  mvaddstr(MaxY - 2, 0, currentAction.c_str());
-  //mvaddstr(MaxY -4,0,std::to_string(getch()).c_str());
 
-  curs_set(0);
-  refresh();
+    mvaddstr(i +1, 0, v[i].getVideoChannel().c_str());
   
-  LastKey = getch();
-  
-  if (LastKey == KEY_UP) {
-      SelItem=SelItem-1;
-      //cout<<CurrentItem<<endl;
+    mvaddstr(i+1, 23, " |");
+    mvaddstr(i +1, 25, v[i].getVideoTitle().c_str());
+    mvaddstr(i+1, 94, " |");
+   
+    mvaddstr(i +1, 96, (p.normaliseDate(v[i].getVideoDate())+"                   ").c_str());
     
-        if(CurrentItem>0)CurrentItem--;
-
   }
-  if (LastKey == KEY_DOWN) {
-      SelItem= SelItem+1;
-
-      if (CurrentItem<LastItem)CurrentItem++;
-  }
+  
+  processGenericPost();
+  currentAction = v[SelItem].getVideoUrl();
   if (LastKey == KEY_ENTER){
      
-        std::string url = v[CurrentItem].getVideoUrl();
+    std::string url = v[SelItem].getVideoUrl();
+    currentAction = "opening " + url;
+    openVideo(url);
+  }
+  if (SelItem >= LastItem) SelItem = LastItem;
+  if (SelItem < 0) SelItem = 0;
+  return 0;
+}
+
+int processPageView(vector<Channel> chvec) {
+  vector<Video> v = getVVec(chvec,currChan);
+  std::string title = chvec[currChan].getChannelName();
+  
+ processGenericPre(v, title);
+
+  for (int i = 0; i < LastItem; i++) {
+    if (SelItem == i) {
+      attrset(COLOR_PAIR(3));
+    } else {
+      attrset(COLOR_PAIR(1));
+    }
+    mvaddstr(i +1, 0, v[i].getVideoTitle().c_str());
+    mvaddstr(i+1, 69, "|");
+   
+    mvaddstr(i +1, 70, p.normaliseDate(v[i].getVideoDate()).c_str());
+  }
+  
+  processGenericPost();
+  currentAction = v[SelItem].getVideoUrl();
+  if (LastKey == KEY_ENTER){
+     
+    std::string url = v[SelItem].getVideoUrl();
     currentAction = "opening " + url;
     openVideo(url);
   }
   if(LastKey == NEXT){
-      if(currChan +1 <chvec.size())currChan++;
-      ClearLine(2,MaxY);
+    if(currChan +1 <chvec.size())currChan++;
+    ClearLine(2,MaxY);
   }
   if(LastKey == PREV){
-      if(currChan -1 >=0)currChan--;
-            ClearLine(2,MaxY);
+    if(currChan -1 >=0)currChan--;
+    ClearLine(2,MaxY);
   }
 
 
@@ -165,23 +240,10 @@ int processPageView(std::string ch,  vector<Channel> chvec) {
 }
 
 int processIndividualMode(vector<Channel> chvec) {
-    vector<Video> v = getVVec(chvec,currChan);
-  LastItem = chvec.size();
-  
-  
-  attrset(COLOR_PAIR(1));
-  for (int i = 0; i <= MaxY; i++) ClearLine(i, MaxX);
+  vector<Video> v = getVVec(chvec,currChan);
+ processGenericPre(v, "All Channels");
 
-  // draw header
-  attrset(A_BOLD|COLOR_PAIR(2));
-  ClearLine(0, MaxX);
-  mvaddstr(0, 0, HeaderText);
-  mvaddstr(0, 1, "All Channels");
-  
-  // draw body
-  attrset(COLOR_PAIR(1));
-
-  for (int i = 0; i < LastItem; i++) {
+  for (int i = 0; i < chvec.size(); i++) {
     if (SelItem == i) {
       attrset(COLOR_PAIR(3));
     } else {
@@ -189,33 +251,14 @@ int processIndividualMode(vector<Channel> chvec) {
     }
     
     mvaddstr(i +1, 0, chvec[i].getChannelName().c_str());
+    //mvaddstr(1, 0, std::to_string(LastKey).c_str());
 
   }
 
-  attrset(A_BOLD|COLOR_PAIR(2));
-  ClearLine(MaxY - 2, MaxX);
-  mvaddstr(MaxY - 2, 0, currentAction.c_str());
-  
-
-  curs_set(0);
-  refresh();
-  
-  LastKey = getch();
-  
-  if (LastKey == KEY_UP) {
-      SelItem=SelItem-1;
-      
-        if(CurrentItem>0)CurrentItem--;
-
-  }
-  if (LastKey == KEY_DOWN) {
-      SelItem= SelItem+1;
-
-      if (CurrentItem<LastItem)CurrentItem++;
-  }
+  processGenericPost();
   if (LastKey == KEY_ENTER){
      
-    currChan = CurrentItem;
+    currChan = SelItem;
     windowtype = 0;
     SelItem = 0;
   
@@ -229,10 +272,10 @@ int processIndividualMode(vector<Channel> chvec) {
 
 
 void openVideo(std::string url){
-    std::string callFunc = "/usr/bin/mpv --no-terminal " + url + " &";
-    system(callFunc.c_str());
-    ClearLine(0,MaxY);
-    refresh();
+  std::string callFunc = "/usr/bin/mpv --no-terminal " + url + " &";
+  system(callFunc.c_str());
+  ClearLine(0,MaxY);
+  refresh();
 
 }
 
@@ -244,6 +287,16 @@ void ClearLine(int y, int l) {
   Str[l - 1] = '\0';
   mvaddstr(y, 0, Str);
 }
+void ClearLinePart(int y, int x, int l) {
+  if(l>x){
+    move(y, 1);
+    l++;
+    char Str[l];
+    for (int i = x; i < l; i++) Str[i] = ' ';
+    Str[l - 1] = '\0';
+    mvaddstr(y, x, Str);
+  }
+}
 
 void CatchSIG(int sig) {
   Terminated = true;
@@ -251,9 +304,9 @@ void CatchSIG(int sig) {
 
 vector<Video> getVVec(vector<Channel> chanVec, int currID){
     
-   vector<Video> vvec;
-    vvec = chanVec[currChan].getVideoVector();
-    return vvec;
+  vector<Video> vvec;
+  vvec = chanVec[currChan].getVideoVector();
+  return vvec;
     
 }
 int main(int argc, char *argv[]) {
@@ -263,12 +316,12 @@ int main(int argc, char *argv[]) {
   int c = 0;
   subParser parser;
   
-  cout<<"hey"<<endl;
+  
   channelVector = parser.getChannelVector();
-    cout<<"hey2"<<endl;
+  
 
-vector<std::string> nameVector;
-vector<Video> vvec;
+  vector<std::string> nameVector;
+  vector<Video> vvec;
   signal(SIGINT, CatchSIG);
   
   initscr();
@@ -294,7 +347,7 @@ vector<Video> vvec;
         
 
   for (auto & element : channelVector) {
-  nameVector.push_back(element.getChannelName());
+    nameVector.push_back(element.getChannelName());
   }
 
 

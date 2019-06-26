@@ -1,8 +1,10 @@
-#include <string.h>
+#include <string>
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include <ctime>
 #include <vector>
+#include <algorithm>
 
 #include "Channel.h"
 #include "Video.h"
@@ -69,8 +71,12 @@ Channel subParser::openChannel(string xml){
 		currVid.setVideoTitle(entry_node->first_node("title")->value());
 		currVid.setVideoUrl(entry_node->first_node("link")->first_attribute("href")->value());
 		currVid.setVideoDate(entry_node->first_node("published")->value());
-	   videoVector.push_back(currVid);
-
+		
+		currVid.setVideoChannel(entry_node->first_node("author")->first_node("name")->value());
+		
+		
+	   	videoVector.push_back(currVid);
+		
 	}
 	currChannel.setChannelVideoVector(videoVector);
 	return currChannel;
@@ -108,6 +114,39 @@ bool subParser::hasEnding (std::string const &fullString, std::string const &end
     } else {
         return false;
     }
+}
+std::string subParser::normaliseDate(std::string datestr){
+	char day[256], month[256], year[256], hour[256], minute[256];
+	//2019-06-15T08:42:59+00:00
+	sscanf(datestr.c_str(), "%4s-%2s-%2sT%2s:%2s",
+    year, month, day, hour, minute);
+	std::string d(day), m(month), y(year), h(hour), mi(minute);
+	
+	std::string output =  h + ":" +  mi + " "
+		+  d + "/" +  m + "/" + y;
+	return output;
+
+
+}
+
+bool subParser::wayToSort(Video a, Video b){
+	int i = a.getVideoUnixTime();
+	int j = b.getVideoUnixTime();
+	return i>j;
+}
+
+std::vector<Video> subParser::getAllVector(std::vector<Channel> chans){
+
+	std::vector<Video> allchansVideoVect;
+	for (auto & element : chans) {
+		for (auto & vids : element.getVideoVector()){
+			allchansVideoVect.push_back(vids);
+		}
+	}
+	std::sort(allchansVideoVect.begin(), allchansVideoVect.end(), wayToSort);
+	
+
+	return allchansVideoVect;
 }
 
 void subParser::updateChanXML(){
