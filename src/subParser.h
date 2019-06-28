@@ -15,8 +15,12 @@
 #include <sstream>
 
 class subParser{
-
+    private:
+        std::string _lastUpdated;
     public:
+        void currentDateTime();
+        std::string getUpdatedTime();
+        void setUpdatedTime(std::string lastUpdated);
         Channel openChannel(std::string xml);
         std::vector<Channel> getChannelVector();
         void createCache();

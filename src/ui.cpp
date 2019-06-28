@@ -9,6 +9,7 @@
 #include "subParser.h"
 #include "Video.h"
 #include "Channel.h"
+#include <ctime>
 
 using namespace std;
 
@@ -153,7 +154,7 @@ int processGenericPre(vector<Video> v , std::string title){
   ClearLine(0, MaxX);
   mvaddstr(0, 0, HeaderText);
   mvaddstr(0, 1, title.c_str());
-
+  mvaddstr(0, MaxX-20, p.getUpdatedTime().c_str());
   // draw body
   attrset(COLOR_PAIR(1));
 

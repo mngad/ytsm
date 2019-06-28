@@ -1,8 +1,5 @@
 #pwd
-input="temp/channelXMLList.conf"
-while IFS= read -r line
-do
+input="../temp/channelXMLList.conf"
     cd cache
-    wget -q $line
+    cat $input | xargs -n1 -P100 wget -q 
     cd ..
-done < "$input"

@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <ctime>
+#include <chrono>
 #include <iomanip>
 #include <sstream>
 
@@ -24,7 +25,28 @@
 using namespace rapidxml;
 using namespace std;
 
+std::string subParser::getUpdatedTime(){
+	return _lastUpdated;
 
+
+}
+void subParser::setUpdatedTime(std::string lastUpdated){
+	_lastUpdated = lastUpdated;
+}
+
+
+// Get current date/time, format is YYYY-MM-DD.HH:mm:ss
+void subParser::currentDateTime() {
+    time_t     now = time(0);
+    struct tm  tstruct;
+    char       buf[80];
+    tstruct = *localtime(&now);
+    // Visit http://en.cppreference.com/w/cpp/chrono/c/strftime
+    // for more information about date/time format
+    strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+
+    setUpdatedTime(buf);
+}
 
 
 void subParser::clearCache(){
@@ -269,7 +291,7 @@ void subParser::updateChanXML(){
 
 	boost::filesystem::remove("temp/channelXMLList.conf");
 
-
+	currentDateTime();
 
 
 }
