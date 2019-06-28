@@ -210,8 +210,8 @@ int processAllMode(vector<Channel> chvec) {
       mvaddstr(i +1, 96, (p.normaliseDate(v[i+shift].getVideoDate()).c_str()));
     }
   }
-  mvaddstr(0,120,("SelItem = " + std::to_string(SelItem) + "shift = "+std::to_string(shift)).c_str());
-    if (SelItem >= LastItem) SelItem = LastItem;
+  //mvaddstr(0,120,("SelItem = " + std::to_string(SelItem) + "shift = "+std::to_string(shift)).c_str());
+  if (SelItem >= LastItem) SelItem = LastItem;
   if (SelItem < 0) SelItem = 0;
   processGenericPost();
   currentAction = v[SelItem].getVideoUrl();
