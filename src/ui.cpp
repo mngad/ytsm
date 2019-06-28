@@ -80,6 +80,7 @@ void upchVecThread(){
   updating = false;
   ClearLine(2,MaxY);
   SelItem=0;
+  
   currentAction = "Updated";
     
 }
@@ -93,7 +94,7 @@ void update(std::string ch){
     
   ClearLine(2,MaxY);
   SelItem=0;
-  windowtype=1;
+  //windowtype=1;
   
 
 }
@@ -202,12 +203,11 @@ int processAllMode(vector<Channel> chvec) {
         fillIn(v[i+shift].getVideoChannel().length(),23)).c_str());
     
       mvaddstr(i+1, 23, " |");
-      mvaddstr(i +1, 25, (v[i+shift].getVideoTitle()+
-        fillIn(v[i+shift].getVideoTitle().length()+25,94)).c_str());
+      mvaddstr(i +1, 25, (v[i+shift].getVideoTitle().substr(0,69)+
+        fillIn(v[i+shift].getVideoTitle().substr(0,69).length()+25,94)).c_str());
       mvaddstr(i+1, 94, " |");
     
-      mvaddstr(i +1, 96, (p.normaliseDate(v[i+shift].getVideoDate())+
-        fillIn(p.normaliseDate(v[i+shift].getVideoDate()).length()+96,MaxX-1)).c_str());
+      mvaddstr(i +1, 96, (p.normaliseDate(v[i+shift].getVideoDate()).c_str()));
     }
   }
   mvaddstr(0,120,("SelItem = " + std::to_string(SelItem) + "shift = "+std::to_string(shift)).c_str());
@@ -230,8 +230,8 @@ int processPageView(vector<Channel> chvec) {
   vector<Video> v = getVVec(chvec,currChan);
   std::string title = chvec[currChan].getChannelName();
   
- processGenericPre(v, title);
-int size;
+  processGenericPre(v, title);
+  int size;
   if(v.size()>MaxY)size = MaxY-3;
   else size = LastItem;
   for (int i = 0; i < size; i++) {
@@ -271,8 +271,9 @@ int size;
 
 int processIndividualMode(vector<Channel> chvec) {
   vector<Video> v = getVVec(chvec,currChan);
- processGenericPre(v, "All Channels");
-int size;
+  processGenericPre(v, "All Channels");
+  LastItem = chvec.size();
+  int size;
   if(chvec.size()>MaxY)size = MaxY-3;
   else size = LastItem;
   for (int i = 0; i < size; i++) {
@@ -281,8 +282,9 @@ int size;
     } else {
       attrset(COLOR_PAIR(1));
     }
-    
+    if(i+shift < chvec.size()){
     mvaddstr(i +1, 0, chvec[i+shift].getChannelName().c_str());
+  }
     //mvaddstr(1, 0, std::to_string(LastKey).c_str());
     //mvaddstr(1, 1, std::to_string(MaxY).c_str());
 

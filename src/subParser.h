@@ -10,6 +10,9 @@
 #include "Video.h"
 #include <boost/filesystem.hpp>
 #include <stdlib.h>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 
 class subParser{
 
@@ -25,6 +28,8 @@ class subParser{
         std::string normaliseDate(std::string datestr);
         std::vector<Video> getAllVector(std::vector<Channel> chans);
         static bool wayToSort(Video a, Video b);
+        long tz_offset(time_t when);
+        int numDigits(int no);
 
 };
 

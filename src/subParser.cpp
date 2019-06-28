@@ -5,6 +5,11 @@
 #include <ctime>
 #include <vector>
 #include <algorithm>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+
+
 
 #include "Channel.h"
 #include "Video.h"
@@ -18,6 +23,7 @@
 
 using namespace rapidxml;
 using namespace std;
+
 
 
 
@@ -83,6 +89,22 @@ Channel subParser::openChannel(string xml){
 
 }
 
+// returns difference in hours from UTC at given time
+// or at current time if not specified
+long subParser::tz_offset(time_t when)
+{
+    
+    auto const tm = *std::localtime(&when);
+    std::ostringstream os;
+    os << std::put_time(&tm, "%z");
+    std::string s = os.str();
+    // s is in ISO 8601 format: "±HHMM"
+    int h = std::stoi(s.substr(0,3), nullptr, 10);
+    int m = std::stoi(s[0]+s.substr(3), nullptr, 10);
+
+    return h;
+}
+
 vector<Channel> subParser::getChannelVector(){
 	
 	boost::filesystem::path cachePath("cache");
@@ -115,15 +137,46 @@ bool subParser::hasEnding (std::string const &fullString, std::string const &end
         return false;
     }
 }
+
+int subParser::numDigits(int no){
+	int a;
+	while(no>0){
+		no=no/10;
+		a++;
+	}
+	return a;
+}
 std::string subParser::normaliseDate(std::string datestr){
-	char day[256], month[256], year[256], hour[256], minute[256];
+
+	std::string year, month, day, hour, minute;
+	int yeari, monthi, dayi, houri, minutei;
 	//2019-06-15T08:42:59+00:00
-	sscanf(datestr.c_str(), "%4s-%2s-%2sT%2s:%2s",
-    year, month, day, hour, minute);
-	std::string d(day), m(month), y(year), h(hour), mi(minute);
+	sscanf(datestr.c_str(), "%4d-%2d-%2dT%2d:%2d",
+    &yeari, &monthi, &dayi, &houri, &minutei);
+	std::tm lDate;
+
+	lDate.tm_sec = 0;  
+	lDate.tm_min = minutei;  
+	lDate.tm_hour = houri;  
+	lDate.tm_mday = dayi;  
+	lDate.tm_mon = monthi -1;  
+	lDate.tm_year = yeari;  
+	time_t lTimeEpoch = mktime(&lDate);
 	
-	std::string output =  h + ":" +  mi + " "
-		+  d + "/" +  m + "/" + y;
+	houri = houri + +tz_offset(lTimeEpoch); // add the timezone 
+	if(numDigits(monthi)<=1) month = "0" + std::to_string(monthi);
+	else month = std::to_string(monthi);
+	if(numDigits(dayi)<=1) day = "0" + std::to_string(dayi);
+	else day = std::to_string(dayi);
+	if(numDigits(houri)<=1) hour = "0" + std::to_string(houri);
+	else hour = std::to_string(houri);
+	if(numDigits(minutei)<=1) minute = "0" + std::to_string(minutei);
+	else minute = std::to_string(minutei);
+	year = std::to_string(yeari);
+
+	std::string output =  hour + ":" + minute + " " + day + "/" + month + "/" +year;
+
+
 	return output;
 
 
