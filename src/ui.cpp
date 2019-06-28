@@ -115,9 +115,11 @@ int Process(std::string ch,vector<Channel> chvec) {
 
   if (LastKey == MKEY){
     windowtype = 1;
+    SelItem =0;
   }
   if (LastKey == AKEY){
     windowtype =2;
+    SelItem =0;
   }
   if (LastKey == UKEY){
     currentAction ="Updating...";
@@ -204,11 +206,11 @@ int processAllMode(vector<Channel> chvec) {
         fillIn(v[i+shift].getVideoChannel().length(),23)).c_str());
     
       mvaddstr(i+1, 23, " |");
-      mvaddstr(i +1, 25, (v[i+shift].getVideoTitle().substr(0,69)+
-        fillIn(v[i+shift].getVideoTitle().substr(0,69).length()+25,94)).c_str());
-      mvaddstr(i+1, 94, " |");
+      mvaddstr(i +1, 25, (v[i+shift].getVideoTitle()+
+        fillIn(v[i+shift].getVideoTitle().length(),MaxX-18)).c_str());
+      mvaddstr(i+1, MaxX-18, " |");
     
-      mvaddstr(i +1, 96, (p.normaliseDate(v[i+shift].getVideoDate()).c_str()));
+      mvaddstr(i +1, MaxX-16, (p.normaliseDate(v[i+shift].getVideoDate()).c_str()));
     }
   }
   //mvaddstr(0,120,("SelItem = " + std::to_string(SelItem) + "shift = "+std::to_string(shift)).c_str());
@@ -241,10 +243,11 @@ int processPageView(vector<Channel> chvec) {
     } else {
       attrset(COLOR_PAIR(1));
     }
-    mvaddstr(i +1, 0, v[i+shift].getVideoTitle().c_str());
-    mvaddstr(i+1, 69, "|");
+    mvaddstr(i +1, 0, (v[i+shift].getVideoTitle()+
+        fillIn(v[i+shift].getVideoTitle().length(),MaxX-18)).c_str());
+    mvaddstr(i+1, MaxX-18, " |");
    
-    mvaddstr(i +1, 70, p.normaliseDate(v[i+shift].getVideoDate()).c_str());
+    mvaddstr(i +1, MaxX-16, p.normaliseDate(v[i+shift].getVideoDate()).c_str());
   }
   
   processGenericPost();
@@ -258,10 +261,12 @@ int processPageView(vector<Channel> chvec) {
   if(LastKey == NEXT){
     if(currChan +1 <chvec.size())currChan++;
     ClearLine(2,MaxY);
+    SelItem =0;
   }
   if(LastKey == PREV){
     if(currChan -1 >=0)currChan--;
     ClearLine(2,MaxY);
+    SelItem =0;
   }
 
 
