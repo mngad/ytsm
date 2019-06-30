@@ -2,8 +2,8 @@ CC=gcc
 CXX=g++
 PROG = ytsm
 CXXFLAGS := -std=c++1y -g -Wall
-LDFLAGS = -L/usr/local/lib -L/usr/lib/x86_64-linux-gnu
-LIBS= -lboost_system -lboost_filesystem -lncurses -pthread -lboost_thread
+LDFLAGS = -L/opt/local/lib -L/usr/local/lib -L/usr/lib/x86_64-linux-gnu
+LIBS= -lboost_system -lboost_filesystem -lncurses -pthread -lboost_thread-mt
 
 SRCS=  src/Channel.cpp src/Video.cpp src/subParser.cpp src/ui.cpp
 

@@ -312,7 +312,7 @@ int processIndividualMode(vector<Channel> chvec) {
 
 
 void openVideo(std::string url){
-  std::string callFunc = "/usr/bin/mpv --no-terminal " + url + " &";
+  std::string callFunc = "mpv --no-terminal " + url + " &";
   system(callFunc.c_str());
   ClearLine(0,MaxY);
   refresh();
