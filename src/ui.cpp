@@ -300,14 +300,15 @@ int processKeys(vector<Channel> chvec) {
   int size;
   //if(v.size()>MaxY)size = MaxY-3;
   size = keys.size();
+  LastItem = size;
   for (int i = 0; i < size; i++) {
     if (SelItem == i+shift) {
       attrset(COLOR_PAIR(3));
     } else {
       attrset(COLOR_PAIR(1));
     }
-    mvaddstr(i +1, 0, keys[i+shift].c_str());
-
+    mvaddstr(i +1, 0, (keys[i+shift]).c_str());
+    //mvaddstr(i +2, 0, (fillIn(0,MaxX-10)).c_str());
 
 
   }
