@@ -55,25 +55,25 @@ void subParser::clearCache(){
 }
 
 void subParser::createCache(){
-	
+
 	boost::filesystem::create_directory("cache");
 	boost::filesystem::create_directory("temp");
-	
+
 
 }
 
 void subParser::dlChannelXMLs(){
-	
+
 	subParser::createCache();
 	system("./src/getID.sh");
-	
+
 	system("./src/downloadXMLs.sh");
 
 }
 
 
 Channel subParser::openChannel(string xml){
-	
+
 	Channel currChannel;
 	xml_document<> doc;
 	xml_node<> * root_node;
@@ -82,7 +82,7 @@ Channel subParser::openChannel(string xml){
 	////cout << "Parsing " << xml << endl;
 	vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
 	buffer.push_back('\0');
-	// Parse the buffer using the xml file parsing library into doc 
+	// Parse the buffer using the xml file parsing library into doc
 	doc.parse<0>(&buffer[0]);
 	// Find our root node
 	root_node = doc.first_node("feed");
@@ -99,12 +99,12 @@ Channel subParser::openChannel(string xml){
 		currVid.setVideoTitle(entry_node->first_node("title")->value());
 		currVid.setVideoUrl(entry_node->first_node("link")->first_attribute("href")->value());
 		currVid.setVideoDate(entry_node->first_node("published")->value());
-		
+
 		currVid.setVideoChannel(entry_node->first_node("author")->first_node("name")->value());
-		
-		
+		currVid.setVideoWatched(false);
+
 	   	videoVector.push_back(currVid);
-		
+
 	}
 	currChannel.setChannelVideoVector(videoVector);
 	return currChannel;
@@ -115,7 +115,7 @@ Channel subParser::openChannel(string xml){
 // or at current time if not specified
 long subParser::tz_offset(time_t when)
 {
-    
+
     auto const tm = *std::localtime(&when);
     std::ostringstream os;
     os << std::put_time(&tm, "%z");
@@ -128,7 +128,7 @@ long subParser::tz_offset(time_t when)
 }
 
 vector<Channel> subParser::getChannelVector(){
-	
+
 	boost::filesystem::path cachePath("cache");
 	  //cout<<"heygetChannelVector1"<<endl;
 
@@ -140,7 +140,7 @@ vector<Channel> subParser::getChannelVector(){
 				  //cout<<"heygetChannelVector3"<<endl;
 			//cout<<entry.path().string()<<endl;
 			chanVect.push_back(openChannel(entry.path().string()));
-			
+
 			  //cout<<"heygetChannelVector4"<<endl;
 
 		}
@@ -177,15 +177,15 @@ std::string subParser::normaliseDate(std::string datestr){
     &yeari, &monthi, &dayi, &houri, &minutei);
 	std::tm lDate;
 
-	lDate.tm_sec = 0;  
-	lDate.tm_min = minutei;  
-	lDate.tm_hour = houri;  
-	lDate.tm_mday = dayi;  
-	lDate.tm_mon = monthi -1;  
-	lDate.tm_year = yeari;  
+	lDate.tm_sec = 0;
+	lDate.tm_min = minutei;
+	lDate.tm_hour = houri;
+	lDate.tm_mday = dayi;
+	lDate.tm_mon = monthi -1;
+	lDate.tm_year = yeari;
 	time_t lTimeEpoch = mktime(&lDate);
-	
-	houri = houri + +tz_offset(lTimeEpoch); // add the timezone 
+
+	houri = houri + +tz_offset(lTimeEpoch); // add the timezone
 	if(numDigits(monthi)<=1) month = "0" + std::to_string(monthi);
 	else month = std::to_string(monthi);
 	if(numDigits(dayi)<=1) day = "0" + std::to_string(dayi);
@@ -219,13 +219,13 @@ std::vector<Video> subParser::getAllVector(std::vector<Channel> chans){
 		}
 	}
 	std::sort(allchansVideoVect.begin(), allchansVideoVect.end(), wayToSort);
-	
+
 
 	return allchansVideoVect;
 }
 
 void subParser::updateChanXML(){
-	
+
 	boost::filesystem::path cachePath("cache");
 
 	dlChannelXMLs();
@@ -241,7 +241,7 @@ void subParser::updateChanXML(){
 			////cout << "Parsing " << xml << endl;
 			vector<char> oldbuffer((istreambuf_iterator<char>(theOldFile)), istreambuf_iterator<char>());
 			oldbuffer.push_back('\0');
-			// Parse the buffer using the xml file parsing library into doc 
+			// Parse the buffer using the xml file parsing library into doc
 			olddoc.parse<0>(&oldbuffer[0]);
 			// Find our root node
 			oldroot_node = olddoc.first_node("feed");
@@ -254,11 +254,11 @@ void subParser::updateChanXML(){
 			////cout << "Parsing " << xml << endl;
 			vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
 			buffer.push_back('\0');
-			// Parse the buffer using the xml file parsing library into doc 
+			// Parse the buffer using the xml file parsing library into doc
 			doc.parse<0>(&buffer[0]);
 			// Find our root node
 			root_node = doc.first_node("feed");
-			
+
 
 			for (xml_node<> * entry_node = root_node->first_node("entry"); entry_node; entry_node = entry_node->next_sibling())
 			{
@@ -267,7 +267,7 @@ void subParser::updateChanXML(){
 				// xml_node<> * nodeToInsert2 = doc.allocate_node(node_element, "cunt");
 				// nodeToInsert->append_node(nodeToInsert2);
 
-				
+
 				//cout<<"firstentryTitle = "<<firstentryTitle<<endl;
 				//cout<<"firstOldentryTitle = "<<firstOldentryTitle<<endl;
 
@@ -276,9 +276,9 @@ void subParser::updateChanXML(){
 				xml_node<> *node = olddoc.clone_node( a );
 				xml_node<> *whereNode = olddoc.clone_node(oldroot_node->first_node("published"));
 				olddoc.first_node("feed")->prepend_node(node);
-				
+
 			}
-			
+
 			std::ofstream file_stored(entry.path().string());
 			file_stored << olddoc;
 			file_stored.close();
@@ -286,7 +286,7 @@ void subParser::updateChanXML(){
 			doc.clear();
 			boost::filesystem::remove(entry.path().string()+".1");
 		}
-	
+
 	}
 
 	boost::filesystem::remove("temp/channelXMLList.conf");
@@ -302,19 +302,19 @@ vector<Channel> subParser::updateGetChannelVector(){
 	boost::filesystem::path cachePath("cache");
 	//boost::filesystem::path cacheNewPath("cache/new");
 
-	
+
 	vector<Channel> chanVect;
 	for (boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator(cachePath)){
 		chanVect.push_back(openChannel(entry.path().string()));
-		
+
 	}
 
 
     return chanVect;
-	
+
 }
 // int main(void)
-// {	
+// {
 // 	// subParser s;
 // 	// s.createCache();
 // 	// s.updateChanXML();

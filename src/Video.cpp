@@ -18,9 +18,16 @@ int Video::getVideoUnixTime(){
 std::string Video::getVideoChannel(){
     return _videoChannel;
 }
+bool Video::getVideoWatched(){
+    return _videoWatched;
+}
+void Video::setVideoWatched(bool videoWatched){
+    _videoWatched = videoWatched;
+}
 void Video::setVideoTitle(std::string videoTitle){
     _videoTitle = videoTitle;
 }
+
 void Video::setVideoUrl(std::string videoUrl){
     _videoUrl = videoUrl;
 }
@@ -43,12 +50,12 @@ int Video::unixTime(std::string datestr){
     &year, &month, &day, &hour, &minute);
 	std::tm lDate;
 
-	lDate.tm_sec = 0;  
-	lDate.tm_min = minute;  
-	lDate.tm_hour = hour;  
-	lDate.tm_mday = day;  
-	lDate.tm_mon = month -1;  
-	lDate.tm_year = year;  
+	lDate.tm_sec = 0;
+	lDate.tm_min = minute;
+	lDate.tm_hour = hour;
+	lDate.tm_mday = day;
+	lDate.tm_mon = month -1;
+	lDate.tm_year = year;
 	time_t lTimeEpoch = mktime(&lDate);
 	int time = std::atoi(std::to_string(lTimeEpoch).c_str());
 	return time;

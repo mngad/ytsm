@@ -10,12 +10,15 @@ class Video{
         std::string _videoDate;
         std::string _videoChannel;
         int _videoUnixTime;
-        
+        bool _videoWatched;
+
     public:
         std::string getVideoChannel();
         std::string getVideoTitle();
         std::string getVideoUrl();
         std::string getVideoDate();
+        bool getVideoWatched();
+        void setVideoWatched(bool videoWatched);
         int getVideoUnixTime();
         void setVideoChannel(std::string videoChannel);
         void setVideoTitle(std::string videoTitle);
