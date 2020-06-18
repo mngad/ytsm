@@ -58,6 +58,7 @@ vector<Video> getVVec(vector<Channel> chanVec, int currID);
 int processSubListMode(vector<Channel> chvec);
 int processAllMode(vector<Channel> chvec);
 int processKeys(vector<Channel> chvec);
+int processSubListSearchMode(vector<Channel> chvec);
 
 
 void shiftFactor(int dir){
@@ -86,8 +87,10 @@ void upchVecThread(){
   updating = false;
   ClearLine(2,MaxY);
   SelItem=0;
+  LastKey = 'a';
 
   currentAction = "Updated";
+
 
 }
 
@@ -128,6 +131,11 @@ int Process(std::string ch,vector<Channel> chvec) {
     SelItem =SelItemA;
     shift =shiftA;
   }
+  if (LastKey == '/'){
+    windowtype =4;
+    SelItem =SelItemS;
+    shift =shiftS;
+  }
   if (LastKey == '?'){
     windowtype =3;
     SelItem =0;
@@ -136,9 +144,7 @@ int Process(std::string ch,vector<Channel> chvec) {
   if (LastKey == UKEY){
     currentAction ="Updating...";
     update(ch);
-    windowtype =2;
-    SelItem =0;
-    shift =0;
+
 
   }
   switch (Screen) {
@@ -154,6 +160,9 @@ int Process(std::string ch,vector<Channel> chvec) {
     }
     if(windowtype==3){
       processKeys(chvec);
+    }
+    if(windowtype==4){
+      processSubListSearchMode(chvec);
     }
   }
 
@@ -219,6 +228,8 @@ int processGenericPost(){
   return 0;
 
 }
+
+
 
 int processAllMode(vector<Channel> chvec) {
   vector<Video> v = p.getAllVector(chvec);
@@ -327,6 +338,7 @@ int processKeys(vector<Channel> chvec) {
 
   vector<std::string> keys = {"a    | View All Channels Videos",
   "s    | View list of Channels",
+  "/    | Search Channels",
   "[    | Previous Channel",
   "]    | Next Channel",
   "u    | Update Feed",
@@ -392,6 +404,88 @@ int processSubListMode(vector<Channel> chvec) {
 
 
   }
+  if (SelItem >= LastItem) SelItem = LastItem;
+  if (SelItem < 0) SelItem = 0;
+  return 0;
+
+
+}
+
+int processSubListSearchMode(vector<Channel> chvec) {
+
+  vector<Video> v = getVVec(chvec,currChan);
+  processGenericPre(v, "Search");
+  LastItem = chvec.size();
+  int size;
+  if(chvec.size()>MaxY)size = MaxY-3;
+  else size = LastItem;
+
+  for (int i = 0; i < size; i++) {
+    if (SelItem == i+shift) {
+      attrset(COLOR_PAIR(3));
+    } else {
+      attrset(COLOR_PAIR(1));
+    }
+    if(i+shift < chvec.size()){
+      mvaddstr(i +1, 0, chvec[i+shift].getChannelName().c_str());
+    }
+    //mvaddstr(1, 0, std::to_string(LastKey).c_str());
+    //mvaddstr(1, 1, std::to_string(MaxY).c_str());
+
+  }
+int x1 = MaxX/4;
+int x2 = (MaxX/4)*3;
+int y1 = MaxY/4;
+int y2 = y1+4;
+
+    mvhline(y1, x1, 0, x2-x1);
+    mvhline(y2-1, x1, 1, x2-x1);
+    mvhline(y2-2, x1, 1, x2-x1);
+    mvhline(y2-3, x1, 1, x2-x1);
+    mvaddstr(y2-3, x1+2, "Search:");
+    mvhline(y2, x1, 0, x2-x1);
+    mvvline(y1, x1, 0, y2-y1);
+    mvvline(y1, x2, 0, y2-y1);
+    mvaddch(y1, x1, ACS_ULCORNER);
+    mvaddch(y2, x1, ACS_LLCORNER);
+    mvaddch(y1, x2, ACS_URCORNER);
+    mvaddch(y2, x2, ACS_LRCORNER);
+
+  attrset(A_BOLD|COLOR_PAIR(1));
+  ClearLine(MaxY - 2, MaxX);
+  mvaddstr(MaxY - 2, 0, currentAction.c_str());
+
+  move(y2-2,x1+2);
+  echo();
+  refresh();
+  char searchStrCha[80];
+
+  getstr(searchStrCha);
+
+  std::string searchStr = searchStrCha;
+  std::for_each(searchStr.begin(), searchStr.end(), [](char & c) {
+    c = ::tolower(c);
+  });
+  mvaddstr(y2-2, x1+2, searchStr.c_str());
+  currentAction = searchStr;
+  for (size_t i = 0; i < chvec.size(); i++) {
+    //std::cout<<searchStr<<std::endl;
+    std::string chstr = chvec[i].getChannelName();
+    std::for_each(chstr.begin(), chstr.end(), [](char & c) {
+      c = ::tolower(c);
+    });
+    size_t found = chstr.find(searchStr);
+    if(found != std::string::npos){
+      SelItemS = i;
+      shiftS = i-(MaxY/2);
+      windowtype = 1;
+      LastKey = 's';
+      break;
+    }
+  }
+
+
+
   if (SelItem >= LastItem) SelItem = LastItem;
   if (SelItem < 0) SelItem = 0;
   return 0;

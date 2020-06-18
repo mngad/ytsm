@@ -29,5 +29,6 @@ Compiles in Gentoo, ncurses is finickity, probably remove -ltinfo from the LIBS 
 - [ ] Makefile create cache folder
 - [x] Alphabetise the sub list
 - [x] Pageup and down + scroll
-- [ ] Add search
+- [x] Add search
 - [ ] ~~Add video length~~ Not possible from RSS
+- [ ] Multiple Accounts
