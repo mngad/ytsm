@@ -212,7 +212,7 @@ vector<Channel> subParser::getChannelVector(){
 		boost::filesystem::remove("new.conf");
 		return chanVect;
 	}
-	else {return updateGetChannelVector();
+	else return updateGetChannelVector();
 
 
 }
