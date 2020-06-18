@@ -1,8 +1,10 @@
 # YTSM
 
-Ncurses viewer and watcher (through mpv) for youtube subscriptions.
+Ncurses based viewer and watcher (through mpv) for youtube subscriptions.
 
 ## Use
+
+`Make` & run `ytsm`
 
 Show key bindings `?`
 
@@ -12,11 +14,11 @@ or
 
 Put a list of channel urls in a channelUrlList.conf file. Both should be kept in the same folder as the executable.
 
-Compiles in Gentoo, ncurses is finickity, probably remove -ltinfo from the LIBS line of the makefile for non-gentoo systems where the two libraries aren't split.s
+Compiles in Gentoo, ncurses is finickity, probably remove -ltinfo from the LIBS of the makefile for non-gentoo systems where the two libraries are likely not split.
 
 ## Requirements
 
-- `wget` `mpv`
+- `wget` `mpv` `boost libraries` `ncurses libraries`
 
 # TODO
 - [x] implement a new video icon
