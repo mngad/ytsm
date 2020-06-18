@@ -34,6 +34,14 @@ void subParser::setUpdatedTime(std::string lastUpdated){
 	_lastUpdated = lastUpdated;
 }
 
+bool subParser::compareFuncAlpha (Channel cha, Channel chb) {
+	std::string a = cha.getChannelName();
+	std::string b = chb.getChannelName();
+	return a<b;
+
+}
+
+
 void subParser::parseOPML(){
   xml_document<> doc;
 	xml_node<> * root_node;
@@ -58,7 +66,7 @@ void subParser::parseOPML(){
 
 	}
 	else{
-		cout << "openned " << '\n';
+		//cout << "openned " << '\n';
 	}
 
 
@@ -71,8 +79,8 @@ void subParser::parseOPML(){
 	//		cout<<"first one - it matches"<<endl;
 	//		break;
 	//	}
-		cout<< "here"<< endl;
-		cout << "xmlUrl" << outline_node->first_attribute("xmlUrl")->value()<< '\n';
+		//cout<< "here"<< endl;
+		//cout << "xmlUrl" << outline_node->first_attribute("xmlUrl")->value()<< '\n';
 	  //cout << "xmlUrl" << outline_node->first_attribute("xmlUrl")->value()<< '\n';
 		outfile << outline_node->first_attribute("xmlUrl")->value() << endl;
 
@@ -120,7 +128,7 @@ void subParser::dlChannelXMLs(){
 	else{
 		subParser::parseOPML();
 		system("./src/downloadXMLs.sh");
-		cout<<"done"<<endl;
+		//cout<<"done"<<endl;
 	}
 
 
@@ -199,7 +207,7 @@ vector<Channel> subParser::getChannelVector(){
 			  //cout<<"heygetChannelVector4"<<endl;
 
 		}
-
+		sort(chanVect.begin(),chanVect.end(),compareFuncAlpha);
 		return chanVect;
 	}
 	else return updateGetChannelVector();
@@ -284,12 +292,12 @@ void subParser::updateChanXML(){
 	boost::filesystem::path cachePath("cache");
 
 	dlChannelXMLs();
-	cout<<"hey1"<<endl;
+	//cout<<"hey1"<<endl;
 	for (boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator(cachePath)){
-cout<<"hey2"<<endl;
+//cout<<"hey2"<<endl;
 		if(!hasEnding(entry.path().string(),".1") && boost::filesystem::exists(entry.path().string()+".1")){
-			cout<<"hey3"<<endl;
-			cout<<entry.path().string()<<endl;
+			//cout<<"hey3"<<endl;
+			//cout<<entry.path().string()<<endl;
 
 			xml_document<> olddoc;
 			xml_node<> * oldroot_node;
@@ -316,7 +324,7 @@ cout<<"hey2"<<endl;
 			// Find our root node
 			root_node = doc.first_node("feed");
 			if(oldroot_node->first_node("entry") != 0) {
-				cout<<"NO ENTRY!!!!!!!!!!!!!!!!!"<<endl;
+				//cout<<"NO ENTRY!!!!!!!!!!!!!!!!!"<<endl;
 				std::string firstOldentryID = oldroot_node->first_node("entry")->first_node("id")->value();
 
 				for (xml_node<> * entry_node = root_node->first_node("entry"); entry_node; entry_node = entry_node->next_sibling())
@@ -345,9 +353,9 @@ cout<<"hey2"<<endl;
 			file_stored.close();
 			olddoc.clear();
 			doc.clear();
-			cout<<"hey4"<<endl;
+			//cout<<"hey4"<<endl;
 			boost::filesystem::remove(entry.path().string()+".1");
-			cout<<"hey5"<<endl;
+			//cout<<"hey5"<<endl;
 		}
 
 	}
@@ -372,7 +380,8 @@ vector<Channel> subParser::updateGetChannelVector(){
 
 	}
 
-
+		//sort(chanVect.begin().getChannelName(),chanVect.end().getChannelName(),compareFuncAlpha);
+		sort(chanVect.begin(),chanVect.end(),compareFuncAlpha);
     return chanVect;
 
 }

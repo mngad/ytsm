@@ -18,6 +18,7 @@ class subParser{
     private:
         std::string _lastUpdated;
     public:
+        static bool compareFuncAlpha(Channel a, Channel b);
         void parseOPML();
         void currentDateTime();
         std::string getUpdatedTime();
