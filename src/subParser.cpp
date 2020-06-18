@@ -185,7 +185,7 @@ long subParser::tz_offset(time_t when)
     std::string s = os.str();
     // s is in ISO 8601 format: "±HHMM"
     int h = std::stoi(s.substr(0,3), nullptr, 10);
-    int m = std::stoi(s[0]+s.substr(3), nullptr, 10);
+    //int m = std::stoi(s[0]+s.substr(3), nullptr, 10);
 
     return h;
 }
@@ -342,7 +342,7 @@ void subParser::updateChanXML(){
 					if( firstentryID == firstOldentryID ) break;
 					xml_node<>* a = entry_node;
 					xml_node<> *node = olddoc.clone_node( a );
-					xml_node<> *whereNode = olddoc.clone_node(oldroot_node->first_node("published"));
+					//xml_node<> *whereNode = olddoc.clone_node(oldroot_node->first_node("published"));
 					olddoc.first_node("feed")->prepend_node(node);
 
 				}
