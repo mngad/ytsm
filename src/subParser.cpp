@@ -34,6 +34,53 @@ void subParser::setUpdatedTime(std::string lastUpdated){
 	_lastUpdated = lastUpdated;
 }
 
+void subParser::parseOPML(){
+  xml_document<> doc;
+	xml_node<> * root_node;
+
+
+	// Read the xml file into a vector
+	ifstream theFile ("subscription_manager");
+	////cout << "Parsing " << xml << endl;
+	vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
+	buffer.push_back('\0');
+	// Parse the buffer using the xml file parsing library into doc
+	doc.parse<0>(&buffer[0]);
+	// Find our root node
+	root_node = doc.first_node("opml")->first_node("body")->first_node("outline");
+
+
+
+
+	ofstream outfile("temp/channelXMLList.conf");
+	if(!outfile.is_open()) {
+		cerr << "Couldn't open 'temp/channelXMLList.conf'" << endl;
+
+	}
+	else{
+		cout << "openned " << '\n';
+	}
+
+
+
+	for (xml_node<> * outline_node = root_node->first_node("outline"); outline_node; outline_node = outline_node->next_sibling("outline"))
+	{
+		string textStr = outline_node->first_attribute("text")->value();
+		cout<<textStr<<endl;
+	//	if(textStr.compare("YouTube Subscriptions") == 0) {
+	//		cout<<"first one - it matches"<<endl;
+	//		break;
+	//	}
+		cout<< "here"<< endl;
+		cout << "xmlUrl" << outline_node->first_attribute("xmlUrl")->value()<< '\n';
+	  //cout << "xmlUrl" << outline_node->first_attribute("xmlUrl")->value()<< '\n';
+		outfile << outline_node->first_attribute("xmlUrl")->value() << endl;
+
+	}
+	outfile.close();
+
+
+}
 
 // Get current date/time, format is YYYY-MM-DD.HH:mm:ss
 void subParser::currentDateTime() {
@@ -65,9 +112,17 @@ void subParser::createCache(){
 void subParser::dlChannelXMLs(){
 
 	subParser::createCache();
-	system("./src/getID.sh");
+	if ( !boost::filesystem::exists( "subscription_manager" ) ){
+		system("./src/getID.sh");
 
-	system("./src/downloadXMLs.sh");
+		system("./src/downloadXMLs.sh");
+	}
+	else{
+		subParser::parseOPML();
+		system("./src/downloadXMLs.sh");
+		cout<<"done"<<endl;
+	}
+
 
 }
 
@@ -101,9 +156,9 @@ Channel subParser::openChannel(string xml){
 		currVid.setVideoDate(entry_node->first_node("published")->value());
 
 		currVid.setVideoChannel(entry_node->first_node("author")->first_node("name")->value());
-		currVid.setVideoWatched(false);
 
-	   	videoVector.push_back(currVid);
+
+	  videoVector.push_back(currVid);
 
 	}
 	currChannel.setChannelVideoVector(videoVector);
@@ -229,11 +284,13 @@ void subParser::updateChanXML(){
 	boost::filesystem::path cachePath("cache");
 
 	dlChannelXMLs();
-	//cout<<"hey1"<<endl;
+	cout<<"hey1"<<endl;
 	for (boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator(cachePath)){
-
+cout<<"hey2"<<endl;
 		if(!hasEnding(entry.path().string(),".1") && boost::filesystem::exists(entry.path().string()+".1")){
-			//cout<<"hey2"<<endl;
+			cout<<"hey3"<<endl;
+			cout<<entry.path().string()<<endl;
+
 			xml_document<> olddoc;
 			xml_node<> * oldroot_node;
 			// Read the xml file into a vector
@@ -245,7 +302,7 @@ void subParser::updateChanXML(){
 			olddoc.parse<0>(&oldbuffer[0]);
 			// Find our root node
 			oldroot_node = olddoc.first_node("feed");
-			std::string firstOldentryTitle = oldroot_node->first_node("entry")->first_node("title")->value();
+
 
 			xml_document<> doc;
 			xml_node<> * root_node;
@@ -258,25 +315,29 @@ void subParser::updateChanXML(){
 			doc.parse<0>(&buffer[0]);
 			// Find our root node
 			root_node = doc.first_node("feed");
+			if(oldroot_node->first_node("entry") != 0) {
+				cout<<"NO ENTRY!!!!!!!!!!!!!!!!!"<<endl;
+				std::string firstOldentryID = oldroot_node->first_node("entry")->first_node("id")->value();
+
+				for (xml_node<> * entry_node = root_node->first_node("entry"); entry_node; entry_node = entry_node->next_sibling())
+				{
+					std::string firstentryID = entry_node->first_node("id")->value();
+					cout<<entry_node->first_node("title")->value()<<endl;
+					// xml_node<> * nodeToInsert = doc.allocate_node(node_element, "entry");
+					// xml_node<> * nodeToInsert2 = doc.allocate_node(node_element, "cunt");
+					// nodeToInsert->append_node(nodeToInsert2);
 
 
-			for (xml_node<> * entry_node = root_node->first_node("entry"); entry_node; entry_node = entry_node->next_sibling())
-			{
-				std::string firstentryTitle = entry_node->first_node("title")->value();
-				// xml_node<> * nodeToInsert = doc.allocate_node(node_element, "entry");
-				// xml_node<> * nodeToInsert2 = doc.allocate_node(node_element, "cunt");
-				// nodeToInsert->append_node(nodeToInsert2);
+					//cout<<"firstentryID = "<<firstentryID<<endl;
+					//cout<<"firstOldentryID = "<<firstOldentryID<<endl;
 
+					if( firstentryID == firstOldentryID ) break;
+					xml_node<>* a = entry_node;
+					xml_node<> *node = olddoc.clone_node( a );
+					xml_node<> *whereNode = olddoc.clone_node(oldroot_node->first_node("published"));
+					olddoc.first_node("feed")->prepend_node(node);
 
-				//cout<<"firstentryTitle = "<<firstentryTitle<<endl;
-				//cout<<"firstOldentryTitle = "<<firstOldentryTitle<<endl;
-
-				if( firstentryTitle == firstOldentryTitle ) break;
-				xml_node<>* a = entry_node;
-				xml_node<> *node = olddoc.clone_node( a );
-				xml_node<> *whereNode = olddoc.clone_node(oldroot_node->first_node("published"));
-				olddoc.first_node("feed")->prepend_node(node);
-
+				}
 			}
 
 			std::ofstream file_stored(entry.path().string());
@@ -284,7 +345,9 @@ void subParser::updateChanXML(){
 			file_stored.close();
 			olddoc.clear();
 			doc.clear();
+			cout<<"hey4"<<endl;
 			boost::filesystem::remove(entry.path().string()+".1");
+			cout<<"hey5"<<endl;
 		}
 
 	}

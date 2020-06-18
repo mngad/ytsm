@@ -18,6 +18,7 @@ class subParser{
     private:
         std::string _lastUpdated;
     public:
+        void parseOPML();
         void currentDateTime();
         std::string getUpdatedTime();
         void setUpdatedTime(std::string lastUpdated);
