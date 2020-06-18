@@ -3,7 +3,7 @@ CXX=g++
 PROG = ytsm
 CXXFLAGS := -std=c++1y -g -Wall
 LDFLAGS = -L/opt/local/lib -L/usr/local/lib -L/usr/lib/x86_64-linux-gnu
-LIBS= -lboost_system -lboost_filesystem  -pthread -lboost_thread-mt -lncurses -pthread -ltinfo
+LIBS= -lboost_system -lboost_filesystem  -pthread -lboost_thread-mt -lncursesw -pthread -ltinfow
 
 SRCS=  src/Channel.cpp src/Video.cpp src/subParser.cpp src/ui.cpp
 
@@ -14,7 +14,7 @@ all: ytsm
 ytsm: $(OBJS)
 	$(CXX) $(CXXFLAGS) -o ytsm $(OBJS) $(LIBS) $(LDFLAGS)
 
-ui.o: ui.cpp -lncurses
+ui.o: ui.cpp
 
 Channel.o: Channel.cpp Channel.h
 

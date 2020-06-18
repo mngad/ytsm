@@ -88,7 +88,7 @@ void upchVecThread(){
   SelItem=0;
 
   currentAction = "Updated";
-  windowtype = 2;
+
 }
 
 void update(std::string ch){
@@ -181,7 +181,7 @@ int processGenericPre(vector<Video> v , std::string title){
 }
 
 int processGenericPost(){
-  currentAction = (to_string(SelItem) + " " + to_string(shift)).c_str();
+  //currentAction = (to_string(SelItem) + " " + to_string(shift)).c_str();
   attrset(A_BOLD|COLOR_PAIR(2));
   ClearLine(MaxY - 2, MaxX);
   mvaddstr(MaxY - 2, 0, currentAction.c_str());
@@ -442,7 +442,7 @@ vector<Video> getVVec(vector<Channel> chanVec, int currID){
 }
 int main(int argc, char *argv[]) {
 
-
+  setlocale(LC_ALL, "");
 
   subParser parser;
 

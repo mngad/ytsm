@@ -327,20 +327,21 @@ void subParser::updateChanXML(){
 			// Find our root node
 			root_node = doc.first_node("feed");
 			if(oldroot_node->first_node("entry") != 0) {
-				//cout<<"NO ENTRY!!!!!!!!!!!!!!!!!"<<endl;
-				std::string firstOldentryID = oldroot_node->first_node("entry")->first_node("id")->value();
+				//cout<<"NO ENTRY!!!!!!!!!!!!!!!!!"<<endl;entry_node->first_node("link")->first_attribute("href")->value()
+				std::string firstOldentryID = oldroot_node->first_node("entry")->first_node("link")->first_attribute("href")->value();
 
 				for (xml_node<> * entry_node = root_node->first_node("entry"); entry_node; entry_node = entry_node->next_sibling())
 				{
-					std::string firstentryID = entry_node->first_node("id")->value();
+					std::string firstentryID = entry_node->first_node("link")->first_attribute("href")->value();
 					//cout<<entry_node->first_node("title")->value()<<endl;
 					// xml_node<> * nodeToInsert = doc.allocate_node(node_element, "entry");
 					// xml_node<> * nodeToInsert2 = doc.allocate_node(node_element, "cunt");
 					// nodeToInsert->append_node(nodeToInsert2);
 
-
-					//cout<<"firstentryID = "<<firstentryID<<endl;
-					//cout<<"firstOldentryID = "<<firstOldentryID<<endl;
+					if(firstOldentryID == "https://www.youtube.com/watch?v=7IINNefd9GM"){
+					cout<<"firstentryID = "<<firstentryID<<endl;
+					cout<<"firstOldentryID = "<<firstOldentryID<<endl;
+				}
 
 					if( firstentryID == firstOldentryID ) break;
 					xml_node<>* a = entry_node;
