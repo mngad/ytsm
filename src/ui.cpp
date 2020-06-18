@@ -88,7 +88,7 @@ void upchVecThread(){
   SelItem=0;
 
   currentAction = "Updated";
-
+  windowtype = 2;
 }
 
 void update(std::string ch){
@@ -109,7 +109,7 @@ void changeScreen(){
 
   if(windowtype+1<=maxWinType)windowtype++;
   else {
-    windowtype =0;
+    windowtype =2;
     currChan = SelItem;
   }
   SelItem =0;
@@ -257,6 +257,7 @@ int processAllMode(vector<Channel> chvec) {
 
     std::string url = v[SelItem].getVideoUrl();
     currentAction = "opening " + url;
+    v[SelItem].setVideoWatched(1);
     openVideo(url);
   }
   if (SelItem >= LastItem) SelItem = LastItem;
@@ -401,6 +402,7 @@ int processSubListMode(vector<Channel> chvec) {
 
 
 void openVideo(std::string url){
+
   std::string callFunc = "mpv --no-terminal " + url + " &";
   system(callFunc.c_str());
   ClearLine(0,MaxY);

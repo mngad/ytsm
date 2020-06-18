@@ -74,7 +74,7 @@ void subParser::parseOPML(){
 	for (xml_node<> * outline_node = root_node->first_node("outline"); outline_node; outline_node = outline_node->next_sibling("outline"))
 	{
 		string textStr = outline_node->first_attribute("text")->value();
-		cout<<textStr<<endl;
+		//cout<<textStr<<endl;
 	//	if(textStr.compare("YouTube Subscriptions") == 0) {
 	//		cout<<"first one - it matches"<<endl;
 	//		break;
@@ -195,11 +195,12 @@ vector<Channel> subParser::getChannelVector(){
 	boost::filesystem::path cachePath("cache");
 	  //cout<<"heygetChannelVector1"<<endl;
 
-	if (!boost::filesystem::is_empty(cachePath)){
+	if (!boost::filesystem::is_empty(cachePath)) {
 		vector<Channel> chanVect;
 			  //cout<<"heygetChannelVector2"<<endl;
 
 		for (boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator(cachePath)){
+
 				  //cout<<"heygetChannelVector3"<<endl;
 			//cout<<entry.path().string()<<endl;
 			chanVect.push_back(openChannel(entry.path().string()));
@@ -208,9 +209,10 @@ vector<Channel> subParser::getChannelVector(){
 
 		}
 		sort(chanVect.begin(),chanVect.end(),compareFuncAlpha);
+		boost::filesystem::remove("new.conf");
 		return chanVect;
 	}
-	else return updateGetChannelVector();
+	else {return updateGetChannelVector();
 
 
 }
@@ -294,6 +296,7 @@ void subParser::updateChanXML(){
 	dlChannelXMLs();
 	//cout<<"hey1"<<endl;
 	for (boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator(cachePath)){
+
 //cout<<"hey2"<<endl;
 		if(!hasEnding(entry.path().string(),".1") && boost::filesystem::exists(entry.path().string()+".1")){
 			//cout<<"hey3"<<endl;
@@ -330,7 +333,7 @@ void subParser::updateChanXML(){
 				for (xml_node<> * entry_node = root_node->first_node("entry"); entry_node; entry_node = entry_node->next_sibling())
 				{
 					std::string firstentryID = entry_node->first_node("id")->value();
-					cout<<entry_node->first_node("title")->value()<<endl;
+					//cout<<entry_node->first_node("title")->value()<<endl;
 					// xml_node<> * nodeToInsert = doc.allocate_node(node_element, "entry");
 					// xml_node<> * nodeToInsert2 = doc.allocate_node(node_element, "cunt");
 					// nodeToInsert->append_node(nodeToInsert2);
@@ -345,6 +348,14 @@ void subParser::updateChanXML(){
 					//xml_node<> *whereNode = olddoc.clone_node(oldroot_node->first_node("published"));
 					olddoc.first_node("feed")->prepend_node(node);
 
+
+// Below writes to the new.conf file when a new video is synced
+					ofstream outfile("new.conf", std::ios_base::app);
+					if(!outfile.is_open()) {
+						cerr << "Couldn't open 'new.conf'" << endl;
+					}
+					outfile << entry_node->first_node("link")->first_attribute("href")->value()<<endl;
+					outfile.close();
 				}
 			}
 

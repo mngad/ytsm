@@ -4,18 +4,23 @@ Ncurses viewer and watcher (through mpv) for youtube subscriptions.
 
 ## Use
 
-Key bindings `?`
+Show key bindings `?`
+
 Download the OPML file by clicking Export subscriptions at the bottom of your [Manage Subscriptions](https://www.youtube.com/subscription_manager).
 
-Compiles in Gentoo, ncurses is finickity.
+or
+
+Put a list of channel urls in a channelUrlList.conf file. Both should be kept in the same folder as the executable.
+
+Compiles in Gentoo, ncurses is finickity, probably remove -ltinfo from the LIBS line of the makefile for non-gentoo systems where the two libraries aren't split.s
 
 ## Requirements
 
 - `wget` `mpv`
 
 # TODO
-- [ ] implement a new video icon
-- [ ] implement a watched icon
+- [x] implement a new video icon
+- [x] implement a watched icon
 - [ ] catagories
 - [x] oplm file import?
 - [x] key binding help guide/ better  keybndings
@@ -25,3 +30,4 @@ Compiles in Gentoo, ncurses is finickity.
 - [x] Alphabetise the sub list
 - [x] Pageup and down + scroll
 - [ ] Add search
+- [ ] ~~Add video length~~ Not possible from RSS
