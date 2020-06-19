@@ -50,17 +50,18 @@ long unsigned int shift = 0;
 subParser p;
 std::vector<Channel> channelVector;
 int numSubs =0;
+int numVids = 0;
 
 void openVideo(std::string url);
 int processPageView(vector<Channel> chvec);
 void ClearLine(int y, int l);
 void ClearLinePart(int y, int x, int l);
-vector<Video> getVVec(vector<Channel> chanVec, int currID);
+vector<Video> getVVec(vector<Channel> chanVec);
 int processSubListMode(vector<Channel> chvec);
 int processAllMode(vector<Channel> chvec);
 int processKeys(vector<Channel> chvec);
 int processSubListSearchMode(vector<Channel> chvec);
-
+int processGenericPost();
 
 void shiftFactor(int dir){
   if(shift >= 0){
@@ -86,11 +87,13 @@ void upchVecThread(){
   channelVector.clear();
   channelVector = channelVectorTemp;
   updating = false;
-  ClearLine(2,MaxY);
-  SelItem=0;
-  LastKey = 'a';
+  //ClearLine(2,MaxY);
+  //SelItem=0;
+
 
   currentAction = "Updated";
+  processAllMode(channelVector);
+  //processGenericPost();
 
 
 }
@@ -181,11 +184,13 @@ int processGenericPre(vector<Video> v , std::string title){
 
   // draw header
   attrset(A_BOLD|COLOR_PAIR(2));
+
+
   ClearLine(0, MaxX);
   //mvaddstr(0, 0, HeaderText);
 
-  std::string statStr = "#Subs: " + to_string(numSubs) + ", #Videos: " + to_string(LastItem)+ ", Updated: " + p.getUpdatedTime();
-  mvaddstr(0, MaxX-(statStr.size()), (statStr).c_str());
+
+
   mvaddstr(0, 1, (title+ "    ").c_str());
 
   // draw body
@@ -198,7 +203,8 @@ int processGenericPost(){
   attrset(A_BOLD|COLOR_PAIR(2));
   ClearLine(MaxY - 2, MaxX);
   mvaddstr(MaxY - 2, 0, currentAction.c_str());
-
+  std::string statStr = "#Subs: " + to_string(numSubs) + ", #Videos: " + to_string(numVids)+ ", Updated: " + p.getUpdatedTime();
+  mvaddstr(0, MaxX-(statStr.size()), (statStr).c_str());
   curs_set(0);
   refresh();
 
@@ -283,7 +289,7 @@ int processAllMode(vector<Channel> chvec) {
 int processPageView(vector<Channel> chvec) {
 
   //cout<<"here"<<endl;
-  vector<Video> v = getVVec(chvec,currChan);
+  vector<Video> v = getVVec(chvec);
   //cout<<to_string(currChan)<<endl;
   std::string title = chvec[currChan].getChannelName();
   //cout<<"here2"<<endl;
@@ -338,7 +344,7 @@ int processPageView(vector<Channel> chvec) {
 }
 
 int processKeys(vector<Channel> chvec) {
-  vector<Video> v = getVVec(chvec,currChan);
+  vector<Video> v = getVVec(chvec);
 
   vector<std::string> keys = {"a    | View All Channels Videos",
   "s    | View list of Channels",
@@ -374,7 +380,7 @@ int processKeys(vector<Channel> chvec) {
 
 int processSubListMode(vector<Channel> chvec) {
 
-  vector<Video> v = getVVec(chvec,currChan);
+  vector<Video> v = getVVec(chvec);
   processGenericPre(v, "All Channels");
   LastItem = chvec.size();
   int size;
@@ -417,7 +423,7 @@ int processSubListMode(vector<Channel> chvec) {
 
 int processSubListSearchMode(vector<Channel> chvec) {
 
-  vector<Video> v = getVVec(chvec,currChan);
+  vector<Video> v = getVVec(chvec);
   processGenericPre(v, "Search");
   LastItem = chvec.size();
   int size;
@@ -531,7 +537,7 @@ void CatchSIG(int sig) {
   Terminated = true;
 }
 
-vector<Video> getVVec(vector<Channel> chanVec, int currID){
+vector<Video> getVVec(vector<Channel> chanVec){
 
   vector<Video> vvec;
   vvec = chanVec[currChan].getVideoVector();
@@ -544,9 +550,9 @@ int main(int argc, char *argv[]) {
 
   subParser parser;
 
-cout<<"here"<<endl;
+//cout<<"here"<<endl;
   channelVector = parser.getChannelVector();
-cout<<"here2"<<endl;
+//cout<<"here2"<<endl;
 
   vector<std::string> nameVector;
   vector<Video> vvec;
@@ -575,6 +581,7 @@ cout<<"here2"<<endl;
 
   for (auto & element : channelVector) {
     nameVector.push_back(element.getChannelName());
+    numVids += element.getVideoVector().size();
   }
 
 
@@ -582,6 +589,7 @@ cout<<"here2"<<endl;
 
   currentAction = "chvex.size" + std::to_string(channelVector.size());
   numSubs = channelVector.size();
+
   while (!Terminated) {
     Process(nameVector[currChan], channelVector);
     usleep(10000);
