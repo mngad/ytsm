@@ -540,9 +540,9 @@ int main(int argc, char *argv[]) {
 
   subParser parser;
 
-
+cout<<"here"<<endl;
   channelVector = parser.getChannelVector();
-
+cout<<"here2"<<endl;
 
   vector<std::string> nameVector;
   vector<Video> vvec;

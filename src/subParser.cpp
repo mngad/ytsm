@@ -249,8 +249,8 @@ std::string subParser::normaliseDate(std::string datestr){
 	lDate.tm_mon = monthi -1;
 	lDate.tm_year = yeari;
 	time_t lTimeEpoch = mktime(&lDate);
-
-	houri = houri + +tz_offset(lTimeEpoch); // add the timezone
+	//std::cout<<houri<<" : "<<lTimeEpoch<<std::endl;
+	//houri = houri + +tz_offset(lTimeEpoch); // add the timezone
 	if(numDigits(monthi)<=1) month = "0" + std::to_string(monthi);
 	else month = std::to_string(monthi);
 	if(numDigits(dayi)<=1) day = "0" + std::to_string(dayi);

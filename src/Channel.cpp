@@ -28,7 +28,7 @@ std::vector<Video> Channel::getVideoVector(){
 
   }
   std::sort(videoVect.begin(), videoVect.end(), sP.wayToSort);
-  _videoVector = videoVect;
+  _videoVector = videoVect; 
     return _videoVector;
 }
 
