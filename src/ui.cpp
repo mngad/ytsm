@@ -106,7 +106,7 @@ void update(std::string ch){
   //channelVector = p.updateGetChannelVector();
 
   ClearLine(2,MaxY);
-  SelItem=0;
+  //SelItem=0;
   //windowtype=1;
 
 
