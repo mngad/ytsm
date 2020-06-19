@@ -328,27 +328,41 @@ void subParser::updateChanXML(){
 			root_node = doc.first_node("feed");
 			if(oldroot_node->first_node("entry") != 0) {
 				//cout<<"NO ENTRY!!!!!!!!!!!!!!!!!"<<endl;entry_node->first_node("link")->first_attribute("href")->value()
-				std::string firstOldentryID = oldroot_node->first_node("entry")->first_node("link")->first_attribute("href")->value();
+				//std::string firstOldentryID = oldroot_node->first_node("entry")->first_node("link")->first_attribute("href")->value();
 
 				for (xml_node<> * entry_node = root_node->first_node("entry"); entry_node; entry_node = entry_node->next_sibling())
 				{
+					//cout<<"1    "<<endl;
+					bool exists = false;
 					std::string firstentryID = entry_node->first_node("link")->first_attribute("href")->value();
+					//cout<<"2   "<<endl;
 					//cout<<entry_node->first_node("title")->value()<<endl;
 					// xml_node<> * nodeToInsert = doc.allocate_node(node_element, "entry");
 					// xml_node<> * nodeToInsert2 = doc.allocate_node(node_element, "cunt");
 					// nodeToInsert->append_node(nodeToInsert2);
+					//cout<<"3    "<<endl;
+					for (xml_node<> * oldentry_node = oldroot_node->first_node("entry"); oldentry_node; oldentry_node = oldentry_node->next_sibling()){
+						//cout<<"1A    "<<endl;
+						if(oldentry_node->first_node("title") == 0) break;
+						//cout<<"oldentry_node->first_node(title)->value() = "<<oldentry_node->first_node("title")->value()<<endl;
+						std::string firstOldentryID = oldentry_node->first_node("link")->first_attribute("href")->value();
+						//cout<<firstOldentryID<<endl;
+						//cout<<firstentryID<<endl;
+						//cout<<"1B   "<<endl;
+						if( firstentryID == firstOldentryID )
+						{
+							exists = true;
 
-					if(firstOldentryID == "https://www.youtube.com/watch?v=7IINNefd9GM"){
-					cout<<"firstentryID = "<<firstentryID<<endl;
-					cout<<"firstOldentryID = "<<firstOldentryID<<endl;
-				}
-
-					if( firstentryID == firstOldentryID ) break;
+						}
+						//cout<<"1C"<<endl;
+					}
+					if( exists == false){
+						std::cout<<"found a new one, "<<entry_node->first_node("title")->value()<<std::endl;
 					xml_node<>* a = entry_node;
-					xml_node<> *node = olddoc.clone_node( a );
+					xml_node<>* node = olddoc.clone_node( a );
 					//xml_node<> *whereNode = olddoc.clone_node(oldroot_node->first_node("published"));
-					olddoc.first_node("feed")->prepend_node(node);
-
+					olddoc.first_node("feed")->append_node(node);
+					//cout<<"here"<<endl;
 
 // Below writes to the new.conf file when a new video is synced
 					ofstream outfile("new.conf", std::ios_base::app);
@@ -357,9 +371,13 @@ void subParser::updateChanXML(){
 					}
 					outfile << entry_node->first_node("link")->first_attribute("href")->value()<<endl;
 					outfile.close();
+					//cout<<"here2"<<endl;
 				}
+				//cout<<"here3"<<endl;
+				}
+				//cout<<"here4"<<endl;
 			}
-
+			//cout<<"here5"<<endl;
 			std::ofstream file_stored(entry.path().string());
 			file_stored << olddoc;
 			file_stored.close();

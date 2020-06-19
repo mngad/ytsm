@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "Video.h"
+#include "subParser.h"
 
 std::string Channel::getChannelName(){
     return _channelName;
@@ -19,6 +20,15 @@ void Channel::setChannelUrl(std::string channelUrl){
 }
 
 std::vector<Video> Channel::getVideoVector(){
+  subParser sP;
+  std::vector<Video> videoVect;
+  for (auto & element : _videoVector) {
+
+      videoVect.push_back(element);
+
+  }
+  std::sort(videoVect.begin(), videoVect.end(), sP.wayToSort);
+  _videoVector = videoVect;
     return _videoVector;
 }
 
@@ -32,7 +42,3 @@ Channel::Channel(std::string channelName, std::string channelUrl){
 void Channel::setChannelVideoVector(std::vector<Video> vidVec){
     _videoVector = vidVec;
 }
-
-
-
-
