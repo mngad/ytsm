@@ -357,7 +357,7 @@ void subParser::updateChanXML(){
 						//cout<<"1C"<<endl;
 					}
 					if( exists == false){
-						std::cout<<"found a new one, "<<entry_node->first_node("title")->value()<<std::endl;
+						//std::cout<<"found a new one, "<<entry_node->first_node("title")->value()<<std::endl;
 					xml_node<>* a = entry_node;
 					xml_node<>* node = olddoc.clone_node( a );
 					//xml_node<> *whereNode = olddoc.clone_node(oldroot_node->first_node("published"));

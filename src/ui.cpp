@@ -49,6 +49,7 @@ bool updating = false;
 long unsigned int shift = 0;
 subParser p;
 std::vector<Channel> channelVector;
+int numSubs =0;
 
 void openVideo(std::string url);
 int processPageView(vector<Channel> chvec);
@@ -182,8 +183,11 @@ int processGenericPre(vector<Video> v , std::string title){
   attrset(A_BOLD|COLOR_PAIR(2));
   ClearLine(0, MaxX);
   //mvaddstr(0, 0, HeaderText);
-  mvaddstr(0, 1, title.c_str());
-  mvaddstr(0, MaxX-20, p.getUpdatedTime().c_str());
+
+  std::string statStr = "#Subs: " + to_string(numSubs) + ", #Videos: " + to_string(LastItem)+ ", Updated: " + p.getUpdatedTime();
+  mvaddstr(0, MaxX-(statStr.size()), (statStr).c_str());
+  mvaddstr(0, 1, (title+ "    ").c_str());
+
   // draw body
   attrset(COLOR_PAIR(1));
   return 0;
@@ -577,7 +581,7 @@ cout<<"here2"<<endl;
 
 
   currentAction = "chvex.size" + std::to_string(channelVector.size());
-
+  numSubs = channelVector.size();
   while (!Terminated) {
     Process(nameVector[currChan], channelVector);
     usleep(10000);
