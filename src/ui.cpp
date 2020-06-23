@@ -80,7 +80,6 @@ std::string fillIn(int textSize, int endpoint){
 void upchVecThread(){
 
 
-
   std::vector<Channel> channelVectorTemp;
   updating = true;
   channelVectorTemp = p.updateGetChannelVector();
@@ -100,14 +99,19 @@ void upchVecThread(){
 
 void update(std::string ch){
 
-  subParser p;
-  boost::thread thread = boost::thread(upchVecThread);
-  thread.detach();
-  //channelVector = p.updateGetChannelVector();
+  if(updating == false){
+    subParser p;
+    boost::thread thread = boost::thread(upchVecThread);
+    thread.detach();
+    //channelVector = p.updateGetChannelVector();
 
-  ClearLine(2,MaxY);
-  //SelItem=0;
-  //windowtype=1;
+    ClearLine(2,MaxY);
+    //SelItem=0;
+    //windowtype=1;
+  }
+  else{
+    currentAction = "Still Updating... ";
+  }
 
 
 }
